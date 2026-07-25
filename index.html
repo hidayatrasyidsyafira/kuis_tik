@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kuis Kotak - Soal Acak</title>
+    <title>Kuis Kotak - Modal</title>
     <style>
         /* ========================================
            RESET & BASE
@@ -118,11 +118,11 @@
             transition: all 0.3s ease;
             padding: 10px;
             position: relative;
-            min-height: 120px;
+            min-height: 100px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
-        .soal-box:hover:not(.disabled) {
+        .soal-box:hover:not(.disabled):not(.correct) {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.25);
             border-color: #667eea;
@@ -136,7 +136,7 @@
         }
 
         .soal-box .status-icon {
-            font-size: 20px;
+            font-size: 24px;
             margin-top: 5px;
         }
 
@@ -150,17 +150,15 @@
             color: #667eea;
         }
 
-        /* State: Sedang dikerjakan (aktif) */
-        .soal-box.active {
-            border-color: #667eea;
-            background: #f0f3ff;
-            transform: scale(1.02);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        /* State: Sedang diproses (disable klik) */
+        .soal-box.loading {
+            border-color: #ffc107;
+            background: #fff3cd;
+            cursor: wait;
         }
 
-        .soal-box.active .nomor {
-            color: #667eea;
-            font-size: 16px;
+        .soal-box.loading .nomor {
+            color: #ffc107;
         }
 
         /* State: Benar */
@@ -178,6 +176,7 @@
         .soal-box.wrong {
             border-color: #dc3545;
             background: #f8d7da;
+            cursor: pointer;
             animation: shake 0.5s ease;
         }
 
@@ -205,118 +204,225 @@
         }
 
         /* ========================================
-           ISI KOTAK SAAT AKTIF
+           MODAL
            ======================================== */
-        .soal-content {
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            display: flex;
-            flex-direction: column;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
             justify-content: center;
             align-items: center;
-            font-size: 12px;
-            text-align: center;
-            gap: 5px;
+            animation: fadeIn 0.3s ease;
         }
 
-        .soal-content .soal-text {
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            max-width: 550px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalSlide 0.3s ease;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        @keyframes modalSlide {
+            from {
+                transform: translateY(30px) scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-header .nomor-soal {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .modal-header .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            transition: all 0.2s ease;
+            padding: 0 10px;
+        }
+
+        .modal-header .close-btn:hover {
+            color: #dc3545;
+            transform: rotate(90deg);
+        }
+
+        .modal .soal-text {
+            font-size: 22px;
             font-weight: 600;
             color: #333;
-            font-size: 13px;
-            margin-bottom: 5px;
-            line-height: 1.3;
-            max-height: 40px;
-            overflow: hidden;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            padding: 10px 0;
         }
 
-        .soal-content .option-grid {
+        .modal .option-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 4px;
-            width: 100%;
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
-        .soal-content .option-btn-small {
+        .modal .option-btn {
             background: white;
-            border: 1.5px solid #ddd;
-            border-radius: 6px;
-            padding: 4px 6px;
-            font-size: 11px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 16px;
             cursor: pointer;
             transition: all 0.2s ease;
+            text-align: left;
             color: #333;
             font-weight: 500;
         }
 
-        .soal-content .option-btn-small:hover:not(:disabled) {
+        .modal .option-btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .modal .option-btn.selected {
             background: #667eea;
             color: white;
             border-color: #667eea;
         }
 
-        .soal-content .option-btn-small.selected {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .soal-content .option-btn-small.correct-opt {
+        .modal .option-btn.correct-opt {
             background: #28a745;
             color: white;
             border-color: #28a745;
         }
 
-        .soal-content .option-btn-small.wrong-opt {
+        .modal .option-btn.wrong-opt {
             background: #dc3545;
             color: white;
             border-color: #dc3545;
         }
 
-        .soal-content .option-btn-small:disabled {
+        .modal .option-btn:disabled {
             cursor: not-allowed;
             opacity: 0.7;
         }
 
-        .soal-content .btn-cek-kecil {
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 4px 12px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 5px;
-            transition: all 0.2s ease;
+        .modal .feedback {
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            padding: 12px;
+            border-radius: 10px;
+            margin: 10px 0 20px;
         }
 
-        .soal-content .btn-cek-kecil:hover:not(:disabled) {
-            background: #218838;
-            transform: scale(1.05);
-        }
-
-        .soal-content .btn-cek-kecil:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .soal-content .feedback {
-            font-size: 11px;
-            font-weight: 600;
-            margin-top: 3px;
-        }
-
-        .soal-content .feedback.benar {
+        .modal .feedback.benar {
+            background: #d4edda;
             color: #28a745;
         }
-        .soal-content .feedback.salah {
+
+        .modal .feedback.salah {
+            background: #f8d7da;
             color: #dc3545;
+        }
+
+        .modal .btn-group-modal {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .modal .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal .btn-cek {
+            background: #28a745;
+            color: white;
+        }
+
+        .modal .btn-cek:hover:not(:disabled) {
+            background: #218838;
+            transform: scale(1.03);
+        }
+
+        .modal .btn-cek:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modal .btn-next {
+            background: #667eea;
+            color: white;
+        }
+
+        .modal .btn-next:hover {
+            background: #5a67d8;
+            transform: scale(1.03);
+        }
+
+        .modal .btn-tutup {
+            background: #6c757d;
+            color: white;
+        }
+
+        .modal .btn-tutup:hover {
+            background: #5a6268;
         }
 
         /* ========================================
            TOMBOL RESET
            ======================================== */
-        .btn-group {
+        .btn-group-bottom {
             display: flex;
             justify-content: center;
             gap: 12px;
@@ -410,12 +516,12 @@
             }
 
             .grid-container {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(4, 1fr);
                 gap: 10px;
             }
 
             .soal-box {
-                min-height: 100px;
+                min-height: 80px;
                 padding: 8px;
             }
 
@@ -423,41 +529,53 @@
                 font-size: 22px;
             }
 
-            .soal-content .soal-text {
-                font-size: 11px;
-                max-height: 32px;
+            .modal {
+                padding: 25px;
             }
 
-            .soal-content .option-btn-small {
-                font-size: 10px;
-                padding: 3px 5px;
-            }
-
-            .stats {
-                padding: 10px 15px;
-            }
-
-            .stats .number {
+            .modal .soal-text {
                 font-size: 18px;
+            }
+
+            .modal .option-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .modal .option-btn {
+                padding: 12px 16px;
+                font-size: 15px;
             }
         }
 
         @media (max-width: 450px) {
             .grid-container {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
                 gap: 8px;
             }
 
             .soal-box {
-                min-height: 80px;
+                min-height: 70px;
             }
 
             .soal-box .nomor {
                 font-size: 18px;
             }
 
+            .soal-box .status-icon {
+                font-size: 18px;
+            }
+
             .header h1 {
                 font-size: 20px;
+            }
+
+            .modal {
+                padding: 20px;
+            }
+
+            .modal .soal-text {
+                font-size: 16px;
             }
         }
     </style>
@@ -467,7 +585,7 @@
         <!-- HEADER -->
         <div class="header">
             <h1>📦 Kuis Kotak</h1>
-            <p>Klik kotak untuk membuka soal ⬅️➡️</p>
+            <p>Klik kotak untuk membuka soal di modal ⬅️➡️</p>
         </div>
 
         <!-- LOADING -->
@@ -507,8 +625,34 @@
             </div>
 
             <!-- TOMBOL -->
-            <div class="btn-group">
+            <div class="btn-group-bottom">
                 <button class="btn btn-danger" onclick="resetQuiz()">🔄 Reset Semua</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================
+    MODAL
+    ======================================== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="nomor-soal" id="modalNomor">Soal 1</span>
+                <button class="close-btn" onclick="closeModal()">✕</button>
+            </div>
+
+            <div class="soal-text" id="modalSoal">Memuat soal...</div>
+
+            <div class="option-grid" id="modalOptions">
+                <!-- Opsi akan diisi JS -->
+            </div>
+
+            <div class="feedback" id="modalFeedback"></div>
+
+            <div class="btn-group-modal">
+                <button class="btn btn-cek" id="modalCekBtn" disabled>✅ Cek Jawaban</button>
+                <button class="btn btn-next" id="modalNextBtn" style="display:none;">➡️ Soal Berikutnya</button>
+                <button class="btn btn-tutup" onclick="closeModal()">✕ Tutup</button>
             </div>
         </div>
     </div>
@@ -527,12 +671,13 @@
         let currentQuestions = [];
         let score = 0;
         let completed = 0;
-        let activeIndex = -1; // Index kotak yang sedang aktif
+        let activeIndex = -1;
         let selectedOption = null;
         let isAnswered = false;
+        let isModalOpen = false;
+        let currentModalIndex = -1;
 
-        // State per kotak
-        let boxStates = {}; // { index: 'pending' | 'active' | 'correct' | 'wrong' }
+        let boxStates = {};
 
         // ============================================================
         //  DOM
@@ -545,6 +690,15 @@
         const totalSoalEl = document.getElementById('totalSoal');
         const selesaiEl = document.getElementById('selesai');
         const scoreEl = document.getElementById('score');
+
+        // Modal
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalNomor = document.getElementById('modalNomor');
+        const modalSoal = document.getElementById('modalSoal');
+        const modalOptions = document.getElementById('modalOptions');
+        const modalFeedback = document.getElementById('modalFeedback');
+        const modalCekBtn = document.getElementById('modalCekBtn');
+        const modalNextBtn = document.getElementById('modalNextBtn');
 
         // ============================================================
         //  LOAD SOAL
@@ -568,7 +722,6 @@
                     throw new Error('Tidak ada soal');
                 }
 
-                // Validasi
                 const valid = data.filter(q =>
                     q.Soal?.trim() &&
                     q['Pilihan A']?.trim() &&
@@ -599,7 +752,6 @@
         //  RESET
         // ============================================================
         function resetQuiz() {
-            // Acak soal
             currentQuestions = [...questions];
             for (let i = currentQuestions.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -609,15 +761,12 @@
             score = 0;
             completed = 0;
             activeIndex = -1;
-            selectedOption = null;
-            isAnswered = false;
-
-            // Reset state box
             boxStates = {};
             currentQuestions.forEach((_, i) => {
                 boxStates[i] = 'pending';
             });
 
+            closeModal();
             updateStats();
             renderGrid();
         }
@@ -630,42 +779,34 @@
 
             currentQuestions.forEach((q, index) => {
                 const box = document.createElement('div');
-                box.className = `soal-box ${boxStates[index]}`;
+                const state = boxStates[index] || 'pending';
+                box.className = `soal-box ${state}`;
                 box.dataset.index = index;
 
-                if (boxStates[index] === 'correct' || boxStates[index] === 'wrong') {
-                    box.classList.add('disabled');
-                }
-
-                // Isi kotak
-                const state = boxStates[index];
-
-                if (state === 'pending') {
-                    // Tampilkan nomor
-                    box.innerHTML = `
-                                <span class="nomor">${index + 1}</span>
-                                <span class="status-icon">📦</span>
-                            `;
-                    box.onclick = () => openBox(index);
-
-                } else if (state === 'active') {
-                    // Tampilkan soal + pilihan
-                    renderActiveBox(box, q, index);
-                    box.onclick = null;
-
-                } else if (state === 'correct') {
+                if (state === 'correct') {
                     box.innerHTML = `
                                 <span class="nomor" style="color:#28a745;">${index + 1}</span>
                                 <span class="status-icon">✅</span>
                             `;
-                    box.onclick = null;
-
                 } else if (state === 'wrong') {
                     box.innerHTML = `
                                 <span class="nomor" style="color:#dc3545;">${index + 1}</span>
                                 <span class="status-icon">❌</span>
                             `;
-                    box.onclick = () => openBox(index); // Bisa diklik ulang
+                } else if (state === 'loading') {
+                    box.innerHTML = `
+                                <span class="nomor" style="color:#ffc107;">${index + 1}</span>
+                                <span class="status-icon">⏳</span>
+                            `;
+                } else {
+                    box.innerHTML = `
+                                <span class="nomor">${index + 1}</span>
+                                <span class="status-icon">📦</span>
+                            `;
+                }
+
+                if (state !== 'correct') {
+                    box.onclick = () => openModal(index);
                 }
 
                 gridContainer.appendChild(box);
@@ -675,9 +816,26 @@
         }
 
         // ============================================================
-        //  RENDER ACTIVE BOX
+        //  MODAL
         // ============================================================
-        function renderActiveBox(box, q, index) {
+        function openModal(index) {
+            if (boxStates[index] === 'correct') return;
+            if (isModalOpen) return;
+
+            currentModalIndex = index;
+            isModalOpen = true;
+            selectedOption = null;
+            isAnswered = false;
+
+            const q = currentQuestions[index];
+            modalNomor.textContent = `Soal ${index + 1} dari ${currentQuestions.length}`;
+            modalSoal.textContent = q.Soal;
+
+            // Reset feedback
+            modalFeedback.textContent = '';
+            modalFeedback.className = 'feedback';
+
+            // Buat opsi
             const options = [
                 { label: 'A', value: q['Pilihan A'] },
                 { label: 'B', value: q['Pilihan B'] },
@@ -685,129 +843,117 @@
                 { label: 'D', value: q['Pilihan D'] }
             ];
 
-            let optHTML = options.map((opt, i) => `
-                        <button class="option-btn-small" data-value="${opt.label}" data-index="${i}">
-                            ${opt.label}. ${opt.value || '-'}
-                        </button>
-                    `).join('');
-
-            box.innerHTML = `
-                        <div class="soal-content">
-                            <div class="soal-text">${q.Soal}</div>
-                            <div class="option-grid">${optHTML}</div>
-                            <button class="btn-cek-kecil" id="cekBtn${index}" disabled>✅ Cek</button>
-                            <div class="feedback" id="feedback${index}"></div>
-                        </div>
-                    `;
-
-            // Event listener untuk pilihan
-            const optionBtns = box.querySelectorAll('.option-btn-small');
-            const cekBtn = box.querySelector(`#cekBtn${index}`);
-            const feedback = box.querySelector(`#feedback${index}`);
-
-            // Reset state untuk box ini
-            selectedOption = null;
-            isAnswered = false;
-            cekBtn.disabled = true;
-            feedback.textContent = '';
-
-            optionBtns.forEach(btn => {
-                btn.onclick = () => {
-                    if (isAnswered) return;
-
-                    // Hapus selected dari semua
-                    optionBtns.forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                    selectedOption = btn.dataset.value;
-                    cekBtn.disabled = false;
-                };
+            modalOptions.innerHTML = '';
+            options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = `${opt.label}. ${opt.value || '-'}`;
+                btn.dataset.value = opt.label;
+                btn.dataset.index = i;
+                btn.onclick = () => selectOptionModal(btn, opt.label);
+                modalOptions.appendChild(btn);
             });
 
-            // Cek jawaban
-            cekBtn.onclick = () => {
-                if (!selectedOption || isAnswered) return;
+            // Reset tombol
+            modalCekBtn.disabled = true;
+            modalCekBtn.style.display = 'inline-block';
+            modalNextBtn.style.display = 'none';
+            modalCekBtn.onclick = () => cekJawabanModal();
 
-                const correct = q.Jawaban?.trim().toUpperCase() || 'A';
-                const isCorrect = selectedOption === correct;
+            // Tampilkan modal
+            modalOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
 
-                // Disable semua tombol
-                optionBtns.forEach(b => b.disabled = true);
-                cekBtn.disabled = true;
-
-                // Tampilkan jawaban benar/salah
-                optionBtns.forEach(b => {
-                    if (b.dataset.value === correct) {
-                        b.classList.add('correct-opt');
-                    }
-                    if (b.dataset.value === selectedOption && !isCorrect) {
-                        b.classList.add('wrong-opt');
-                    }
-                });
-
-                if (isCorrect) {
-                    score++;
-                    completed++;
-                    feedback.textContent = '✅ Benar!';
-                    feedback.className = 'feedback benar';
-                    boxStates[index] = 'correct';
-
-                    // Auto buka soal berikutnya setelah delay
-                    setTimeout(() => {
-                        const nextIndex = findNextPending(index);
-                        if (nextIndex !== -1) {
-                            openBox(nextIndex);
-                        } else {
-                            // Semua selesai
-                            renderGrid();
-                            alert('🎉 Semua soal selesai! Skor: ' + score + '/' + currentQuestions.length);
-                        }
-                        renderGrid();
-                    }, 800);
-
-                } else {
-                    feedback.textContent = `❌ Salah! Jawaban: ${correct}`;
-                    feedback.className = 'feedback salah';
-                    boxStates[index] = 'wrong';
-
-                    // Bisa dicoba lagi setelah 1.5 detik
-                    setTimeout(() => {
-                        // Reset box ke pending agar bisa dibuka ulang
-                        boxStates[index] = 'pending';
-                        renderGrid();
-                        // Buka otomatis
-                        openBox(index);
-                    }, 1500);
-                }
-
-                isAnswered = true;
-                updateStats();
-            };
+        function closeModal() {
+            modalOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+            isModalOpen = false;
+            currentModalIndex = -1;
         }
 
         // ============================================================
-        //  OPEN BOX
+        //  MODAL - SELECT OPTION
         // ============================================================
-        function openBox(index) {
-            // Tutup box yang aktif sebelumnya
-            if (activeIndex !== -1 && activeIndex !== index) {
-                if (boxStates[activeIndex] === 'active') {
-                    boxStates[activeIndex] = 'pending';
+        function selectOptionModal(button, value) {
+            if (isAnswered) return;
+
+            const allBtns = modalOptions.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.classList.remove('selected'));
+
+            button.classList.add('selected');
+            selectedOption = value;
+            modalCekBtn.disabled = false;
+        }
+
+        // ============================================================
+        //  MODAL - CEK JAWABAN
+        // ============================================================
+        function cekJawabanModal() {
+            if (!selectedOption || isAnswered) return;
+
+            const index = currentModalIndex;
+            const q = currentQuestions[index];
+            const correct = q.Jawaban?.trim().toUpperCase() || 'A';
+            const isCorrect = selectedOption === correct;
+
+            // Disable semua tombol opsi
+            const allBtns = modalOptions.querySelectorAll('.option-btn');
+            allBtns.forEach(b => {
+                b.disabled = true;
+                if (b.dataset.value === correct) {
+                    b.classList.add('correct-opt');
                 }
+                if (b.dataset.value === selectedOption && !isCorrect) {
+                    b.classList.add('wrong-opt');
+                }
+            });
+
+            modalCekBtn.disabled = true;
+
+            if (isCorrect) {
+                score++;
+                completed++;
+                boxStates[index] = 'correct';
+                modalFeedback.textContent = '✅ Benar! Jawaban Anda tepat! 🎉';
+                modalFeedback.className = 'feedback benar';
+
+                // Sembunyikan tombol cek, tampilkan next
+                modalCekBtn.style.display = 'none';
+                modalNextBtn.style.display = 'inline-block';
+                modalNextBtn.onclick = () => {
+                    closeModal();
+                    renderGrid();
+                    // Buka otomatis soal berikutnya
+                    const nextIndex = findNextPending(index);
+                    if (nextIndex !== -1) {
+                        setTimeout(() => openModal(nextIndex), 300);
+                    } else {
+                        alert('🎉 Semua soal selesai! Skor: ' + score + '/' + currentQuestions.length);
+                    }
+                };
+
+            } else {
+                boxStates[index] = 'wrong';
+                modalFeedback.textContent = `❌ Salah! Jawaban yang benar adalah: ${correct}`;
+                modalFeedback.className = 'feedback salah';
+
+                // Tampilkan tombol coba lagi setelah 1.5 detik
+                modalCekBtn.textContent = '🔄 Coba Lagi';
+                modalCekBtn.disabled = false;
+                modalCekBtn.onclick = () => {
+                    // Reset modal untuk soal yang sama
+                    closeModal();
+                    // Render grid untuk update status
+                    renderGrid();
+                    // Buka ulang modal
+                    setTimeout(() => openModal(index), 300);
+                };
             }
 
-            // Jika box sudah correct, tidak bisa dibuka
-            if (boxStates[index] === 'correct') return;
-
-            // Set active
-            boxStates[index] = 'active';
-            activeIndex = index;
+            isAnswered = true;
+            updateStats();
             renderGrid();
-
-            // Scroll ke box yang aktif (di mobile)
-            const boxes = gridContainer.querySelectorAll('.soal-box');
-            if (boxes[index]) {
-                boxes[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
         }
 
         // ============================================================
@@ -819,7 +965,6 @@
                     return i;
                 }
             }
-            // Cari dari awal
             for (let i = 0; i < fromIndex; i++) {
                 if (boxStates[i] === 'pending' || boxStates[i] === 'wrong') {
                     return i;
@@ -838,10 +983,30 @@
         }
 
         // ============================================================
+        //  TUTUP MODAL KALAU KLIK DI LUAR
+        // ============================================================
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        });
+
+        // ============================================================
+        //  ESC UNTUK TUTUP MODAL
+        // ============================================================
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isModalOpen) {
+                closeModal();
+            }
+        });
+
+        // ============================================================
         //  EXPOSE
         // ============================================================
         window.loadQuestions = loadQuestions;
         window.resetQuiz = resetQuiz;
+        window.closeModal = closeModal;
+        window.openModal = openModal;
 
         // ============================================================
         //  START
