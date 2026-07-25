@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Kuis - Soal Acak</title>
+    <title>Kuis Kotak - Soal Acak</title>
     <style>
         /* ========================================
-           RESET & BASE STYLES
+           RESET & BASE
            ======================================== */
         * {
             margin: 0;
@@ -28,8 +28,8 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 850px;
+            padding: 30px;
+            max-width: 900px;
             width: 100%;
             animation: slideIn 0.5s ease;
         }
@@ -50,13 +50,12 @@
            ======================================== */
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .header h1 {
             color: #333;
             font-size: 28px;
-            margin-bottom: 10px;
         }
 
         .header p {
@@ -71,9 +70,9 @@
             display: flex;
             justify-content: space-between;
             background: #f8f9fa;
-            padding: 15px 20px;
+            padding: 12px 20px;
             border-radius: 10px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
             gap: 10px;
         }
@@ -81,178 +80,258 @@
         .stats div {
             text-align: center;
             flex: 1;
-            min-width: 80px;
+            min-width: 70px;
         }
 
         .stats .number {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             color: #667eea;
         }
 
         .stats .label {
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
+            margin-top: 3px;
+        }
+
+        /* ========================================
+           GRID KOTAK SOAL
+           ======================================== */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .soal-box {
+            aspect-ratio: 1 / 1;
+            background: white;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 10px;
+            position: relative;
+            min-height: 120px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .soal-box:hover:not(.disabled) {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.25);
+            border-color: #667eea;
+        }
+
+        .soal-box .nomor {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .soal-box .status-icon {
+            font-size: 20px;
             margin-top: 5px;
         }
 
-        /* ========================================
-           QUESTION
-           ======================================== */
-        .question-box {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            min-height: 80px;
+        /* State: Belum dijawab */
+        .soal-box.pending {
+            border-color: #e0e0e0;
+            background: white;
         }
 
-        .question-box h2 {
-            color: #333;
-            font-size: 20px;
+        .soal-box.pending .nomor {
+            color: #667eea;
+        }
+
+        /* State: Sedang dikerjakan (aktif) */
+        .soal-box.active {
+            border-color: #667eea;
+            background: #f0f3ff;
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .soal-box.active .nomor {
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        /* State: Benar */
+        .soal-box.correct {
+            border-color: #28a745;
+            background: #d4edda;
+            cursor: default;
+        }
+
+        .soal-box.correct .nomor {
+            color: #28a745;
+        }
+
+        /* State: Salah */
+        .soal-box.wrong {
+            border-color: #dc3545;
+            background: #f8d7da;
+            animation: shake 0.5s ease;
+        }
+
+        .soal-box.wrong .nomor {
+            color: #dc3545;
+        }
+
+        /* State: Disabled */
+        .soal-box.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-10px);
+            }
+            75% {
+                transform: translateX(10px);
+            }
+        }
+
+        /* ========================================
+           ISI KOTAK SAAT AKTIF
+           ======================================== */
+        .soal-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            text-align: center;
+            gap: 5px;
+        }
+
+        .soal-content .soal-text {
             font-weight: 600;
+            color: #333;
+            font-size: 13px;
+            margin-bottom: 5px;
+            line-height: 1.3;
+            max-height: 40px;
+            overflow: hidden;
         }
 
-        /* ========================================
-           OPTIONS
-           ======================================== */
-        .options {
+        .soal-content .option-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 25px;
+            gap: 4px;
+            width: 100%;
         }
 
-        .option-btn {
+        .soal-content .option-btn-small {
             background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 15px;
+            border: 1.5px solid #ddd;
+            border-radius: 6px;
+            padding: 4px 6px;
+            font-size: 11px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: left;
-            font-size: 16px;
+            transition: all 0.2s ease;
             color: #333;
+            font-weight: 500;
         }
 
-        .option-btn:hover:not(:disabled) {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .option-btn.selected {
+        .soal-content .option-btn-small:hover:not(:disabled) {
             background: #667eea;
             color: white;
             border-color: #667eea;
         }
 
-        .option-btn.correct {
+        .soal-content .option-btn-small.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .soal-content .option-btn-small.correct-opt {
             background: #28a745;
             color: white;
             border-color: #28a745;
-            animation: pulseGreen 0.5s ease;
         }
 
-        .option-btn.wrong {
+        .soal-content .option-btn-small.wrong-opt {
             background: #dc3545;
             color: white;
             border-color: #dc3545;
-            animation: pulseRed 0.5s ease;
         }
 
-        @keyframes pulseGreen {
-            0%,
-            100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-        }
-
-        @keyframes pulseRed {
-            0%,
-            100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-        }
-
-        .option-btn:disabled {
+        .soal-content .option-btn-small:disabled {
             cursor: not-allowed;
-            opacity: 0.8;
+            opacity: 0.7;
+        }
+
+        .soal-content .btn-cek-kecil {
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .soal-content .btn-cek-kecil:hover:not(:disabled) {
+            background: #218838;
+            transform: scale(1.05);
+        }
+
+        .soal-content .btn-cek-kecil:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .soal-content .feedback {
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 3px;
+        }
+
+        .soal-content .feedback.benar {
+            color: #28a745;
+        }
+        .soal-content .feedback.salah {
+            color: #dc3545;
         }
 
         /* ========================================
-           BUTTONS
+           TOMBOL RESET
            ======================================== */
         .btn-group {
             display: flex;
-            gap: 12px;
             justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
             flex-wrap: wrap;
         }
 
         .btn {
-            padding: 12px 30px;
+            padding: 10px 25px;
             border: none;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: #5a67d8;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-primary:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-success:hover:not(:disabled) {
-            background: #218838;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
-        }
-
-        .btn-success:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-warning {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .btn-warning:hover {
-            background: #e0a800;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
         }
 
         .btn-danger {
@@ -263,42 +342,22 @@
         .btn-danger:hover {
             background: #c82333;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
         /* ========================================
-           RESULT BOX (per soal)
-           ======================================== */
-        .result-box {
-            margin-top: 20px;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            display: none;
-        }
-
-        .result-box.show {
-            display: block;
-            animation: slideIn 0.5s ease;
-        }
-
-        .result-box.success {
-            background: #d4edda;
-            border: 2px solid #28a745;
-        }
-
-        .result-box.fail {
-            background: #f8d7da;
-            border: 2px solid #dc3545;
-        }
-
-        .result-box h3 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        /* ========================================
-           LOADING
+           LOADING & ERROR
            ======================================== */
         .loading {
             text-align: center;
@@ -329,9 +388,6 @@
             }
         }
 
-        /* ========================================
-           ERROR MESSAGE
-           ======================================== */
         .error-message {
             background: #f8d7da;
             color: #721c24;
@@ -345,945 +401,450 @@
             display: block;
         }
 
-        .error-message .btn {
-            margin-top: 10px;
-        }
-
-        /* ========================================
-           FINAL RESULT VISUAL
-           ======================================== */
-        .final-result {
-            display: none;
-            animation: fadeInUp 0.8s ease;
-        }
-
-        .final-result.show {
-            display: block;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .result-card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 25px;
-            text-align: center;
-        }
-
-        .result-emoji {
-            font-size: 72px;
-            margin-bottom: 10px;
-            animation: bounce 1s ease infinite;
-        }
-
-        @keyframes bounce {
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-15px);
-            }
-        }
-
-        .result-title {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .result-subtitle {
-            font-size: 18px;
-            color: #666;
-            margin-bottom: 15px;
-        }
-
-        .score-circle-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 20px 0;
-        }
-
-        .score-circle {
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: white;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .score-circle .score-number {
-            font-size: 48px;
-            font-weight: 700;
-            color: #333;
-        }
-
-        .score-circle .score-label {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .score-circle .score-total {
-            font-size: 18px;
-            color: #999;
-        }
-
-        .progress-bar-container {
-            margin: 20px 0;
-            background: #e9ecef;
-            border-radius: 10px;
-            height: 30px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .progress-bar {
-            height: 100%;
-            border-radius: 10px;
-            transition: width 1.5s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            color: white;
-            font-size: 14px;
-        }
-
-        .progress-bar.excellent {
-            background: linear-gradient(90deg, #28a745, #20c997);
-        }
-        .progress-bar.good {
-            background: linear-gradient(90deg, #17a2b8, #28a745);
-        }
-        .progress-bar.average {
-            background: linear-gradient(90deg, #ffc107, #fd7e14);
-        }
-        .progress-bar.poor {
-            background: linear-gradient(90deg, #dc3545, #fd7e14);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .stat-item {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            text-align: center;
-        }
-
-        .stat-item .stat-number {
-            font-size: 28px;
-            font-weight: 700;
-        }
-
-        .stat-item .stat-number.green {
-            color: #28a745;
-        }
-        .stat-item .stat-number.red {
-            color: #dc3545;
-        }
-        .stat-item .stat-number.blue {
-            color: #667eea;
-        }
-        .stat-item .stat-number.orange {
-            color: #fd7e14;
-        }
-
-        .stat-item .stat-label {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .result-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        .achievement-badge {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            margin: 5px;
-        }
-
-        .badge-gold {
-            background: #ffd700;
-            color: #856404;
-        }
-        .badge-silver {
-            background: #c0c0c0;
-            color: #383d41;
-        }
-        .badge-bronze {
-            background: #cd7f32;
-            color: white;
-        }
-
-        /* ========================================
-           CONFETTI
-           ======================================== */
-        .confetti-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: 9999;
-        }
-
-        .confetti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            top: -10px;
-            animation: confettiFall linear forwards;
-        }
-
-        @keyframes confettiFall {
-            0% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotate(720deg);
-                opacity: 0;
-            }
-        }
-
         /* ========================================
            RESPONSIVE
            ======================================== */
-        @media (max-width: 600px) {
+        @media (max-width: 700px) {
             .container {
-                padding: 20px;
+                padding: 15px;
             }
 
-            .options {
-                grid-template-columns: 1fr;
-            }
-
-            .stats {
-                flex-direction: column;
+            .grid-container {
+                grid-template-columns: repeat(3, 1fr);
                 gap: 10px;
             }
 
-            .header h1 {
+            .soal-box {
+                min-height: 100px;
+                padding: 8px;
+            }
+
+            .soal-box .nomor {
                 font-size: 22px;
             }
 
-            .score-circle {
-                width: 140px;
-                height: 140px;
+            .soal-content .soal-text {
+                font-size: 11px;
+                max-height: 32px;
             }
 
-            .score-circle .score-number {
-                font-size: 36px;
+            .soal-content .option-btn-small {
+                font-size: 10px;
+                padding: 3px 5px;
             }
 
-            .result-title {
-                font-size: 24px;
+            .stats {
+                padding: 10px 15px;
             }
 
-            .result-emoji {
-                font-size: 56px;
+            .stats .number {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
             }
 
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
+            .soal-box {
+                min-height: 80px;
+            }
+
+            .soal-box .nomor {
+                font-size: 18px;
+            }
+
+            .header h1 {
+                font-size: 20px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- ===== HEADER ===== -->
+        <!-- HEADER -->
         <div class="header">
-            <h1>📝 Aplikasi Kuis</h1>
-            <p>Soal akan diacak setiap kali Anda membuka atau mereset kuis</p>
+            <h1>📦 Kuis Kotak</h1>
+            <p>Klik kotak untuk membuka soal ⬅️➡️</p>
         </div>
 
-        <!-- ===== LOADING ===== -->
+        <!-- LOADING -->
         <div id="loading" class="loading show">
             <div class="spinner"></div>
             <p>Memuat soal...</p>
         </div>
 
-        <!-- ===== ERROR MESSAGE ===== -->
+        <!-- ERROR -->
         <div id="errorMessage" class="error-message">
-            <strong>⚠️ Error:</strong>
-            <span id="errorText">Gagal memuat soal</span>
+            <strong>⚠️ Error:</strong> <span id="errorText">Gagal memuat soal</span>
+            <br>
+            <button class="btn btn-primary" onclick="loadQuestions()" style="margin-top:10px;">🔄 Coba Lagi</button>
         </div>
 
-        <!-- ===== QUIZ CONTENT ===== -->
+        <!-- QUIZ -->
         <div id="quizContent" style="display: none;">
-            <!-- Stats -->
+            <!-- STATS -->
             <div class="stats">
                 <div>
-                    <div class="number" id="currentQuestion">1</div>
-                    <div class="label">Soal Ke</div>
-                </div>
-                <div>
-                    <div class="number" id="totalQuestions">0</div>
+                    <div class="number" id="totalSoal">0</div>
                     <div class="label">Total Soal</div>
                 </div>
                 <div>
+                    <div class="number" id="selesai">0</div>
+                    <div class="label">✅ Selesai</div>
+                </div>
+                <div>
                     <div class="number" id="score">0</div>
-                    <div class="label">Skor</div>
+                    <div class="label">⭐ Skor</div>
                 </div>
             </div>
 
-            <!-- Question -->
-            <div class="question-box">
-                <h2 id="questionText">Memuat soal...</h2>
+            <!-- GRID KOTAK -->
+            <div class="grid-container" id="gridContainer">
+                <!-- Kotak akan digenerate oleh JS -->
             </div>
 
-            <!-- Options -->
-            <div class="options" id="optionsContainer"></div>
-
-            <!-- Buttons -->
-            <div class="btn-group" id="btnGroup">
-                <button class="btn btn-success" id="checkBtn" disabled>✅ Cek Jawaban</button>
-                <button class="btn btn-warning" id="nextBtn" style="display: none;">➡️ Soal Selanjutnya</button>
-                <button class="btn btn-danger" id="resetBtn">🔄 Reset Kuis</button>
-            </div>
-
-            <!-- Result per question -->
-            <div id="resultBox" class="result-box">
-                <h3 id="resultText"></h3>
-                <p id="resultDetail"></p>
-            </div>
-        </div>
-
-        <!-- ===== FINAL RESULT ===== -->
-        <div id="finalResult" class="final-result">
-            <div class="result-card">
-                <div class="result-emoji" id="resultEmoji">🏆</div>
-                <div class="result-title" id="resultTitle">Kuis Selesai!</div>
-                <div class="result-subtitle" id="resultSubtitle">Bagus sekali!</div>
-
-                <div class="score-circle-container">
-                    <div class="score-circle">
-                        <span class="score-number" id="finalScore">0</span>
-                        <span class="score-label">dari</span>
-                        <span class="score-total" id="finalTotal">0</span>
-                    </div>
-                </div>
-
-                <div class="progress-bar-container">
-                    <div class="progress-bar excellent" id="progressBar" style="width: 0%;">
-                        <span id="progressText">0%</span>
-                    </div>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number green" id="correctCount">0</div>
-                        <div class="stat-label">✅ Benar</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number red" id="wrongCount">0</div>
-                        <div class="stat-label">❌ Salah</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number blue" id="totalAnswered">0</div>
-                        <div class="stat-label">📝 Dijawab</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number orange" id="accuracyRate">0%</div>
-                        <div class="stat-label">🎯 Akurasi</div>
-                    </div>
-                </div>
-
-                <div id="achievementBadges" style="margin: 15px 0;"></div>
-
-                <div class="result-actions">
-                    <button class="btn btn-primary" onclick="resetQuiz()">🔄 Kerjakan Ulang</button>
-                    <button class="btn btn-success" onclick="shareResult()">📤 Bagikan Hasil</button>
-                </div>
+            <!-- TOMBOL -->
+            <div class="btn-group">
+                <button class="btn btn-danger" onclick="resetQuiz()">🔄 Reset Semua</button>
             </div>
         </div>
     </div>
-
-    <!-- ===== CONFETTI CONTAINER ===== -->
-    <div id="confettiContainer" class="confetti-container"></div>
 
     <script>
         // ============================================================
         //  KONFIGURASI
         // ============================================================
-        // 🔧 GANTI URL INI DENGAN URL DEPLOYMENT GOOGLE APPS SCRIPT ANDA
+        // 🔧 GANTI DENGAN URL DEPLOYMENT ANDA
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycHGGdzzfUoTFEKz7QdIsL24N_DU5ZJVcfLvGFKpL9Z8fG8YBE074AxoUeVxLNAFmI/exec';
-        // Contoh: https://script.google.com/macros/s/AKfycbzQz4qcI8.../exec
 
         // ============================================================
         //  STATE
         // ============================================================
         let questions = [];
         let currentQuestions = [];
-        let currentIndex = 0;
         let score = 0;
+        let completed = 0;
+        let activeIndex = -1; // Index kotak yang sedang aktif
         let selectedOption = null;
         let isAnswered = false;
-        let correctAnswers = 0;
-        let wrongAnswers = 0;
-        let answeredQuestions = 0;
+
+        // State per kotak
+        let boxStates = {}; // { index: 'pending' | 'active' | 'correct' | 'wrong' }
 
         // ============================================================
-        //  DOM REFERENSI
+        //  DOM
         // ============================================================
         const loading = document.getElementById('loading');
         const quizContent = document.getElementById('quizContent');
-        const finalResult = document.getElementById('finalResult');
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
-        const questionText = document.getElementById('questionText');
-        const optionsContainer = document.getElementById('optionsContainer');
-        const currentQuestionEl = document.getElementById('currentQuestion');
-        const totalQuestionsEl = document.getElementById('totalQuestions');
+        const gridContainer = document.getElementById('gridContainer');
+        const totalSoalEl = document.getElementById('totalSoal');
+        const selesaiEl = document.getElementById('selesai');
         const scoreEl = document.getElementById('score');
-        const checkBtn = document.getElementById('checkBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const resultBox = document.getElementById('resultBox');
-        const resultText = document.getElementById('resultText');
-        const resultDetail = document.getElementById('resultDetail');
-        const btnGroup = document.getElementById('btnGroup');
 
         // ============================================================
-        //  LOAD QUESTIONS - DENGAN VALIDASI ROBUST
+        //  LOAD SOAL
         // ============================================================
         async function loadQuestions() {
             try {
-                // Tampilkan loading
                 loading.classList.add('show');
                 quizContent.style.display = 'none';
-                finalResult.classList.remove('show');
                 errorMessage.classList.remove('show');
 
-                console.log('🔄 Mengambil data dari:', SCRIPT_URL);
-
                 const response = await fetch(SCRIPT_URL);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-                // Cek response HTTP
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                // Parse JSON
                 const data = await response.json();
-                console.log('📦 Data dari server:', data);
 
-                // ===== VALIDASI DATA =====
-
-                // 1. Cek data null/undefined
-                if (!data) {
-                    throw new Error('Data kosong (null/undefined)');
+                if (!data || data.error) {
+                    throw new Error(data?.error || 'Data kosong');
                 }
 
-                // 2. Cek jika data adalah object error
-                if (data.error) {
-                    throw new Error(data.error);
+                if (!Array.isArray(data) || data.length === 0) {
+                    throw new Error('Tidak ada soal');
                 }
 
-                // 3. Cek jika data bukan array
-                if (!Array.isArray(data)) {
-                    console.error('❌ Data bukan array:', data);
-                    throw new Error(
-                        'Data yang diterima bukan array. Periksa format response dari Google Apps Script.'
-                        );
+                // Validasi
+                const valid = data.filter(q =>
+                    q.Soal?.trim() &&
+                    q['Pilihan A']?.trim() &&
+                    q.Jawaban?.trim()
+                );
+
+                if (valid.length === 0) {
+                    throw new Error('Tidak ada soal valid');
                 }
 
-                // 4. Cek jika array kosong
-                if (data.length === 0) {
-                    throw new Error(
-                        'Tidak ada data soal. Periksa isi Google Sheets Anda. ' +
-                        'Pastikan ada minimal 1 baris data dengan header yang benar.'
-                    );
-                }
+                questions = valid;
+                console.log(`✅ ${questions.length} soal dimuat`);
 
-                // 5. Validasi setiap soal memiliki field yang diperlukan
-                const validQuestions = data.filter(q => {
-                    const hasSoal = q.Soal && q.Soal.toString().trim() !== '';
-                    const hasPilihanA = q['Pilihan A'] && q['Pilihan A'].toString().trim() !== '';
-                    const hasJawaban = q.Jawaban && q.Jawaban.toString().trim() !== '';
+                resetQuiz();
 
-                    // Log peringatan untuk soal yang tidak lengkap
-                    if (!hasSoal) console.warn('⚠️ Soal tanpa pertanyaan:', q);
-                    if (!hasPilihanA) console.warn('⚠️ Soal tanpa pilihan A:', q);
-                    if (!hasJawaban) console.warn('⚠️ Soal tanpa jawaban:', q);
-
-                    return hasSoal && hasPilihanA && hasJawaban;
-                });
-
-                if (validQuestions.length === 0) {
-                    throw new Error(
-                        'Tidak ada soal yang valid. ' +
-                        'Pastikan kolom: Soal, Pilihan A, Pilihan B, Pilihan C, Pilihan D, Jawaban terisi dengan benar.'
-                    );
-                }
-
-                // Simpan data yang valid
-                questions = validQuestions;
-                console.log(`✅ Berhasil memuat ${questions.length} soal`);
-
-                // Mulai kuis
-                shuffleQuestions();
-                displayQuestion();
-
-                // Sembunyikan loading, tampilkan konten
                 loading.classList.remove('show');
                 quizContent.style.display = 'block';
 
             } catch (error) {
-                console.error('❌ Error:', error);
-
-                // Sembunyikan loading
+                console.error('Error:', error);
                 loading.classList.remove('show');
-
-                // Buat pesan error yang user-friendly
-                let userMessage = error.message || 'Gagal memuat soal.';
-
-                if (error.message.includes('HTTP')) {
-                    userMessage =
-                        '⚠️ Gagal terhubung ke server. Periksa URL Google Apps Script dan koneksi internet.';
-                } else if (error.message.includes('array') || error.message.includes('format')) {
-                    userMessage =
-                        '⚠️ Format data tidak sesuai. Pastikan Google Apps Script mengembalikan array JSON. ' +
-                        'Periksa console browser (F12) untuk detail.';
-                } else if (error.message.includes('kosong') || error.message.includes('data soal')) {
-                    userMessage = '⚠️ ' + error.message;
-                }
-
-                errorText.textContent = userMessage;
+                errorText.textContent = error.message || 'Gagal memuat soal';
                 errorMessage.classList.add('show');
-
-                // Hapus tombol refresh lama jika ada
-                const oldBtn = errorMessage.querySelector('.btn');
-                if (oldBtn) oldBtn.remove();
-
-                // Tambahkan tombol refresh
-                const refreshBtn = document.createElement('button');
-                refreshBtn.className = 'btn btn-primary';
-                refreshBtn.textContent = '🔄 Coba Lagi';
-                refreshBtn.onclick = () => {
-                    errorMessage.classList.remove('show');
-                    loadQuestions();
-                };
-                errorMessage.appendChild(refreshBtn);
             }
         }
 
         // ============================================================
-        //  SHUFFLE QUESTIONS (Fisher-Yates)
+        //  RESET
         // ============================================================
-        function shuffleQuestions() {
-            if (!questions || questions.length === 0) {
-                console.warn('⚠️ Tidak ada soal untuk diacak');
-                return;
-            }
-
+        function resetQuiz() {
+            // Acak soal
             currentQuestions = [...questions];
             for (let i = currentQuestions.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [currentQuestions[i], currentQuestions[j]] = [currentQuestions[j], currentQuestions[i]];
             }
 
-            // Reset state
-            currentIndex = 0;
             score = 0;
-            correctAnswers = 0;
-            wrongAnswers = 0;
-            answeredQuestions = 0;
+            completed = 0;
+            activeIndex = -1;
             selectedOption = null;
             isAnswered = false;
+
+            // Reset state box
+            boxStates = {};
+            currentQuestions.forEach((_, i) => {
+                boxStates[i] = 'pending';
+            });
+
+            updateStats();
+            renderGrid();
+        }
+
+        // ============================================================
+        //  RENDER GRID
+        // ============================================================
+        function renderGrid() {
+            gridContainer.innerHTML = '';
+
+            currentQuestions.forEach((q, index) => {
+                const box = document.createElement('div');
+                box.className = `soal-box ${boxStates[index]}`;
+                box.dataset.index = index;
+
+                if (boxStates[index] === 'correct' || boxStates[index] === 'wrong') {
+                    box.classList.add('disabled');
+                }
+
+                // Isi kotak
+                const state = boxStates[index];
+
+                if (state === 'pending') {
+                    // Tampilkan nomor
+                    box.innerHTML = `
+                                <span class="nomor">${index + 1}</span>
+                                <span class="status-icon">📦</span>
+                            `;
+                    box.onclick = () => openBox(index);
+
+                } else if (state === 'active') {
+                    // Tampilkan soal + pilihan
+                    renderActiveBox(box, q, index);
+                    box.onclick = null;
+
+                } else if (state === 'correct') {
+                    box.innerHTML = `
+                                <span class="nomor" style="color:#28a745;">${index + 1}</span>
+                                <span class="status-icon">✅</span>
+                            `;
+                    box.onclick = null;
+
+                } else if (state === 'wrong') {
+                    box.innerHTML = `
+                                <span class="nomor" style="color:#dc3545;">${index + 1}</span>
+                                <span class="status-icon">❌</span>
+                            `;
+                    box.onclick = () => openBox(index); // Bisa diklik ulang
+                }
+
+                gridContainer.appendChild(box);
+            });
+
             updateStats();
         }
 
         // ============================================================
-        //  DISPLAY QUESTION
+        //  RENDER ACTIVE BOX
         // ============================================================
-        function displayQuestion() {
-            // Cek jika ada soal
-            if (!currentQuestions || currentQuestions.length === 0) {
-                questionText.textContent = '⚠️ Tidak ada soal yang tersedia';
-                optionsContainer.innerHTML = '';
-                return;
-            }
+        function renderActiveBox(box, q, index) {
+            const options = [
+                { label: 'A', value: q['Pilihan A'] },
+                { label: 'B', value: q['Pilihan B'] },
+                { label: 'C', value: q['Pilihan C'] },
+                { label: 'D', value: q['Pilihan D'] }
+            ];
 
-            // Cek jika kuis selesai
-            if (currentIndex >= currentQuestions.length) {
-                showFinalResult();
-                return;
-            }
+            let optHTML = options.map((opt, i) => `
+                        <button class="option-btn-small" data-value="${opt.label}" data-index="${i}">
+                            ${opt.label}. ${opt.value || '-'}
+                        </button>
+                    `).join('');
 
-            const q = currentQuestions[currentIndex];
+            box.innerHTML = `
+                        <div class="soal-content">
+                            <div class="soal-text">${q.Soal}</div>
+                            <div class="option-grid">${optHTML}</div>
+                            <button class="btn-cek-kecil" id="cekBtn${index}" disabled>✅ Cek</button>
+                            <div class="feedback" id="feedback${index}"></div>
+                        </div>
+                    `;
 
-            // Validasi soal
-            if (!q || !q.Soal) {
-                questionText.textContent = '⚠️ Soal tidak valid';
-                optionsContainer.innerHTML = '';
-                return;
-            }
+            // Event listener untuk pilihan
+            const optionBtns = box.querySelectorAll('.option-btn-small');
+            const cekBtn = box.querySelector(`#cekBtn${index}`);
+            const feedback = box.querySelector(`#feedback${index}`);
 
-            // Tampilkan pertanyaan
-            questionText.textContent = q.Soal;
-
-            // Kosongkan options
-            optionsContainer.innerHTML = '';
-
-            // Buat pilihan jawaban
-            const optionLabels = ['A', 'B', 'C', 'D'];
-            const optionFields = ['Pilihan A', 'Pilihan B', 'Pilihan C', 'Pilihan D'];
-
-            let hasValidOptions = false;
-
-            optionLabels.forEach((label, index) => {
-                const field = optionFields[index];
-                const value = q[field] || '';
-
-                if (value.toString().trim() !== '') {
-                    hasValidOptions = true;
-                }
-
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.textContent = `${label}. ${value || 'Tidak tersedia'}`;
-                btn.dataset.value = label;
-                btn.onclick = () => selectOption(btn, label);
-                optionsContainer.appendChild(btn);
-            });
-
-            // Jika tidak ada pilihan yang valid
-            if (!hasValidOptions) {
-                optionsContainer.innerHTML = `
-                            <p style="color: red; text-align: center; grid-column: 1 / -1;">
-                                ⚠️ Tidak ada pilihan jawaban untuk soal ini
-                            </p>
-                        `;
-            }
-
-            // Reset state
+            // Reset state untuk box ini
             selectedOption = null;
             isAnswered = false;
-            checkBtn.disabled = true;
-            checkBtn.style.display = 'inline-block';
-            nextBtn.style.display = 'none';
-            resultBox.classList.remove('show', 'success', 'fail');
-            btnGroup.style.justifyContent = 'space-between';
+            cekBtn.disabled = true;
+            feedback.textContent = '';
 
-            // Enable semua option button
-            document.querySelectorAll('.option-btn').forEach(btn => {
-                btn.disabled = false;
-                btn.className = 'option-btn';
+            optionBtns.forEach(btn => {
+                btn.onclick = () => {
+                    if (isAnswered) return;
+
+                    // Hapus selected dari semua
+                    optionBtns.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedOption = btn.dataset.value;
+                    cekBtn.disabled = false;
+                };
             });
 
-            updateStats();
-        }
+            // Cek jawaban
+            cekBtn.onclick = () => {
+                if (!selectedOption || isAnswered) return;
 
-        // ============================================================
-        //  SELECT OPTION
-        // ============================================================
-        function selectOption(button, value) {
-            if (isAnswered) return;
-            if (!button || button.disabled) return;
+                const correct = q.Jawaban?.trim().toUpperCase() || 'A';
+                const isCorrect = selectedOption === correct;
 
-            // Hapus class selected dari semua button
-            document.querySelectorAll('.option-btn').forEach(btn => {
-                btn.classList.remove('selected');
-            });
+                // Disable semua tombol
+                optionBtns.forEach(b => b.disabled = true);
+                cekBtn.disabled = true;
 
-            button.classList.add('selected');
-            selectedOption = value;
-            checkBtn.disabled = false;
-        }
-
-        // ============================================================
-        //  CHECK ANSWER
-        // ============================================================
-        function checkAnswer() {
-            if (!selectedOption || isAnswered) return;
-
-            const q = currentQuestions[currentIndex];
-            if (!q) return;
-
-            const correctAnswer = q.Jawaban ? q.Jawaban.toString().trim().toUpperCase() : 'A';
-            const isCorrect = selectedOption === correctAnswer;
-
-            // Update statistik
-            if (isCorrect) {
-                score++;
-                correctAnswers++;
-            } else {
-                wrongAnswers++;
-            }
-            answeredQuestions++;
-            updateStats();
-
-            // Tampilkan benar/salah pada options
-            document.querySelectorAll('.option-btn').forEach(btn => {
-                btn.disabled = true;
-                const btnValue = btn.dataset.value;
-                if (btnValue === correctAnswer) {
-                    btn.classList.add('correct');
-                } else if (btnValue === selectedOption && !isCorrect) {
-                    btn.classList.add('wrong');
-                }
-            });
-
-            // Tampilkan result box
-            resultBox.className = 'result-box show';
-            resultBox.classList.add(isCorrect ? 'success' : 'fail');
-            resultText.textContent = isCorrect ? '✅ Benar!' : '❌ Salah!';
-            resultDetail.textContent = isCorrect ?
-                'Jawaban Anda tepat! 🎉' :
-                `Jawaban yang benar adalah: ${correctAnswer}`;
-
-            isAnswered = true;
-            checkBtn.disabled = true;
-            checkBtn.style.display = 'none';
-            nextBtn.style.display = 'inline-block';
-        }
-
-        // ============================================================
-        //  NEXT QUESTION
-        // ============================================================
-        function nextQuestion() {
-            currentIndex++;
-            if (currentIndex < currentQuestions.length) {
-                displayQuestion();
-            } else {
-                showFinalResult();
-            }
-        }
-
-        // ============================================================
-        //  SHOW FINAL RESULT - VISUAL
-        // ============================================================
-        function showFinalResult() {
-            quizContent.style.display = 'none';
-            finalResult.classList.add('show');
-
-            const total = currentQuestions.length || 0;
-            const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
-            const accuracy = answeredQuestions > 0 ?
-                Math.round((correctAnswers / answeredQuestions) * 100) :
-                0;
-
-            // Update angka-angka
-            document.getElementById('finalScore').textContent = score;
-            document.getElementById('finalTotal').textContent = total;
-            document.getElementById('correctCount').textContent = correctAnswers;
-            document.getElementById('wrongCount').textContent = wrongAnswers;
-            document.getElementById('totalAnswered').textContent = answeredQuestions;
-            document.getElementById('accuracyRate').textContent = accuracy + '%';
-
-            // Progress bar
-            const progressBar = document.getElementById('progressBar');
-            const progressText = document.getElementById('progressText');
-            progressBar.style.width = percentage + '%';
-            progressText.textContent = percentage + '%';
-
-            // Warna progress bar
-            progressBar.className = 'progress-bar';
-            if (percentage >= 80) progressBar.classList.add('excellent');
-            else if (percentage >= 70) progressBar.classList.add('good');
-            else if (percentage >= 60) progressBar.classList.add('average');
-            else progressBar.classList.add('poor');
-
-            // Emoji, title, subtitle
-            const emoji = document.getElementById('resultEmoji');
-            const title = document.getElementById('resultTitle');
-            const subtitle = document.getElementById('resultSubtitle');
-
-            if (percentage >= 90) {
-                emoji.textContent = '🌟';
-                title.textContent = 'Luar Biasa!';
-                subtitle.textContent = 'Anda adalah seorang jenius! 🎉';
-                launchConfetti();
-            } else if (percentage >= 80) {
-                emoji.textContent = '🏆';
-                title.textContent = 'Sangat Baik!';
-                subtitle.textContent = 'Pertahankan prestasi Anda! 👏';
-                launchConfetti();
-            } else if (percentage >= 70) {
-                emoji.textContent = '⭐';
-                title.textContent = 'Bagus!';
-                subtitle.textContent = 'Terus belajar dan berkembang! 📚';
-            } else if (percentage >= 60) {
-                emoji.textContent = '💪';
-                title.textContent = 'Cukup Baik!';
-                subtitle.textContent = 'Sedikit lagi dan Anda akan lebih hebat!';
-            } else {
-                emoji.textContent = '📖';
-                title.textContent = 'Terus Belajar!';
-                subtitle.textContent = 'Jangan menyerah, Anda bisa melakukannya! 💪';
-            }
-
-            // Achievement badges
-            const badgesContainer = document.getElementById('achievementBadges');
-            badgesContainer.innerHTML = '';
-
-            if (percentage >= 80) {
-                badgesContainer.innerHTML +=
-                    '<span class="achievement-badge badge-gold">🥇 Emas</span>';
-            }
-            if (percentage >= 70 && percentage < 80) {
-                badgesContainer.innerHTML +=
-                    '<span class="achievement-badge badge-silver">🥈 Perak</span>';
-            }
-            if (percentage >= 60 && percentage < 70) {
-                badgesContainer.innerHTML +=
-                    '<span class="achievement-badge badge-bronze">🥉 Perunggu</span>';
-            }
-            if (score === total && total > 0) {
-                badgesContainer.innerHTML +=
-                    '<span class="achievement-badge badge-gold">🏅 Sempurna!</span>';
-            }
-            if (answeredQuestions === total && total > 0) {
-                badgesContainer.innerHTML +=
-                    '<span class="achievement-badge badge-silver">📝 Tuntas!</span>';
-            }
-            if (badgesContainer.innerHTML === '') {
-                badgesContainer.innerHTML =
-                    '<span class="achievement-badge" style="background:#f8f9fa;color:#666;">💪 Terus Berlatih!</span>';
-            }
-        }
-
-        // ============================================================
-        //  CONFETTI EFFECT
-        // ============================================================
-        function launchConfetti() {
-            const container = document.getElementById('confettiContainer');
-            if (!container) return;
-
-            const colors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff6fb7', '#a66cff'];
-            container.innerHTML = '';
-
-            for (let i = 0; i < 100; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + '%';
-                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.width = (Math.random() * 8 + 4) + 'px';
-                confetti.style.height = (Math.random() * 8 + 4) + 'px';
-                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                confetti.style.animationDelay = (Math.random() * 2) + 's';
-                container.appendChild(confetti);
-            }
-
-            setTimeout(() => {
-                container.innerHTML = '';
-            }, 5000);
-        }
-
-        // ============================================================
-        //  SHARE RESULT
-        // ============================================================
-        function shareResult() {
-            const total = currentQuestions.length || 0;
-            const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
-            const text =
-                `🎯 Hasil Kuis Saya:\nSkor: ${score}/${total}\nPersentase: ${percentage}%\n\n${percentage >= 80 ? '🌟 Luar Biasa!' : percentage >= 60 ? '💪 Cukup Baik!' : '📖 Terus Belajar!'}`;
-
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Hasil Kuis',
-                    text: text
-                }).catch(() => {});
-            } else {
-                navigator.clipboard.writeText(text).then(() => {
-                    alert('✅ Hasil telah disalin ke clipboard!');
-                }).catch(() => {
-                    alert(text);
+                // Tampilkan jawaban benar/salah
+                optionBtns.forEach(b => {
+                    if (b.dataset.value === correct) {
+                        b.classList.add('correct-opt');
+                    }
+                    if (b.dataset.value === selectedOption && !isCorrect) {
+                        b.classList.add('wrong-opt');
+                    }
                 });
+
+                if (isCorrect) {
+                    score++;
+                    completed++;
+                    feedback.textContent = '✅ Benar!';
+                    feedback.className = 'feedback benar';
+                    boxStates[index] = 'correct';
+
+                    // Auto buka soal berikutnya setelah delay
+                    setTimeout(() => {
+                        const nextIndex = findNextPending(index);
+                        if (nextIndex !== -1) {
+                            openBox(nextIndex);
+                        } else {
+                            // Semua selesai
+                            renderGrid();
+                            alert('🎉 Semua soal selesai! Skor: ' + score + '/' + currentQuestions.length);
+                        }
+                        renderGrid();
+                    }, 800);
+
+                } else {
+                    feedback.textContent = `❌ Salah! Jawaban: ${correct}`;
+                    feedback.className = 'feedback salah';
+                    boxStates[index] = 'wrong';
+
+                    // Bisa dicoba lagi setelah 1.5 detik
+                    setTimeout(() => {
+                        // Reset box ke pending agar bisa dibuka ulang
+                        boxStates[index] = 'pending';
+                        renderGrid();
+                        // Buka otomatis
+                        openBox(index);
+                    }, 1500);
+                }
+
+                isAnswered = true;
+                updateStats();
+            };
+        }
+
+        // ============================================================
+        //  OPEN BOX
+        // ============================================================
+        function openBox(index) {
+            // Tutup box yang aktif sebelumnya
+            if (activeIndex !== -1 && activeIndex !== index) {
+                if (boxStates[activeIndex] === 'active') {
+                    boxStates[activeIndex] = 'pending';
+                }
             }
+
+            // Jika box sudah correct, tidak bisa dibuka
+            if (boxStates[index] === 'correct') return;
+
+            // Set active
+            boxStates[index] = 'active';
+            activeIndex = index;
+            renderGrid();
+
+            // Scroll ke box yang aktif (di mobile)
+            const boxes = gridContainer.querySelectorAll('.soal-box');
+            if (boxes[index]) {
+                boxes[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // ============================================================
+        //  FIND NEXT PENDING
+        // ============================================================
+        function findNextPending(fromIndex) {
+            for (let i = fromIndex + 1; i < currentQuestions.length; i++) {
+                if (boxStates[i] === 'pending' || boxStates[i] === 'wrong') {
+                    return i;
+                }
+            }
+            // Cari dari awal
+            for (let i = 0; i < fromIndex; i++) {
+                if (boxStates[i] === 'pending' || boxStates[i] === 'wrong') {
+                    return i;
+                }
+            }
+            return -1;
         }
 
         // ============================================================
         //  UPDATE STATS
         // ============================================================
         function updateStats() {
-            const total = currentQuestions ? currentQuestions.length : 0;
-            currentQuestionEl.textContent = total > 0 ?
-                Math.min(currentIndex + 1, total) :
-                0;
-            totalQuestionsEl.textContent = total;
+            totalSoalEl.textContent = currentQuestions.length || 0;
+            selesaiEl.textContent = completed;
             scoreEl.textContent = score;
         }
 
         // ============================================================
-        //  RESET QUIZ
+        //  EXPOSE
         // ============================================================
-        function resetQuiz() {
-            // Jika belum ada data, reload dari server
-            if (!questions || questions.length === 0) {
-                loadQuestions();
-                return;
-            }
-
-            // Sembunyikan final result, tampilkan quiz
-            finalResult.classList.remove('show');
-            quizContent.style.display = 'block';
-
-            // Acak ulang dan tampilkan
-            shuffleQuestions();
-            displayQuestion();
-
-            // Reset tombol
-            checkBtn.style.display = 'inline-block';
-            nextBtn.style.display = 'none';
-            btnGroup.style.justifyContent = 'space-between';
-            resultBox.classList.remove('show', 'success', 'fail');
-
-            // Hapus confetti
-            document.getElementById('confettiContainer').innerHTML = '';
-        }
-
-        // ============================================================
-        //  EXPOSE KE GLOBAL (untuk onclick di HTML)
-        // ============================================================
+        window.loadQuestions = loadQuestions;
         window.resetQuiz = resetQuiz;
-        window.shareResult = shareResult;
 
         // ============================================================
-        //  EVENT LISTENERS
-        // ============================================================
-        checkBtn.addEventListener('click', checkAnswer);
-        nextBtn.addEventListener('click', nextQuestion);
-        resetBtn.addEventListener('click', resetQuiz);
-
-        // ============================================================
-        //  START APP
+        //  START
         // ============================================================
         loadQuestions();
     </script>
