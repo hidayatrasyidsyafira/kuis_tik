@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi Kuis - Soal Acak</title>
     <style>
+        /* ========================================
+           RESET & BASE STYLES
+           ======================================== */
         * {
             margin: 0;
             padding: 0;
@@ -24,7 +27,7 @@
         .container {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 40px;
             max-width: 850px;
             width: 100%;
@@ -42,6 +45,9 @@
             }
         }
 
+        /* ========================================
+           HEADER
+           ======================================== */
         .header {
             text-align: center;
             margin-bottom: 30px;
@@ -58,6 +64,9 @@
             font-size: 14px;
         }
 
+        /* ========================================
+           STATS
+           ======================================== */
         .stats {
             display: flex;
             justify-content: space-between;
@@ -87,6 +96,9 @@
             margin-top: 5px;
         }
 
+        /* ========================================
+           QUESTION
+           ======================================== */
         .question-box {
             background: #f8f9fa;
             padding: 20px;
@@ -101,6 +113,9 @@
             font-weight: 600;
         }
 
+        /* ========================================
+           OPTIONS
+           ======================================== */
         .options {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -149,13 +164,23 @@
         }
 
         @keyframes pulseGreen {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
         }
 
         @keyframes pulseRed {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
         }
 
         .option-btn:disabled {
@@ -163,6 +188,9 @@
             opacity: 0.8;
         }
 
+        /* ========================================
+           BUTTONS
+           ======================================== */
         .btn-group {
             display: flex;
             gap: 12px;
@@ -203,10 +231,17 @@
             color: white;
         }
 
-        .btn-success:hover {
+        .btn-success:hover:not(:disabled) {
             background: #218838;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-success:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         .btn-warning {
@@ -231,6 +266,9 @@
             box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
         }
 
+        /* ========================================
+           RESULT BOX (per soal)
+           ======================================== */
         .result-box {
             margin-top: 20px;
             padding: 20px;
@@ -259,6 +297,9 @@
             margin-bottom: 10px;
         }
 
+        /* ========================================
+           LOADING
+           ======================================== */
         .loading {
             text-align: center;
             padding: 40px;
@@ -280,10 +321,17 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
+        /* ========================================
+           ERROR MESSAGE
+           ======================================== */
         .error-message {
             background: #f8d7da;
             color: #721c24;
@@ -297,7 +345,13 @@
             display: block;
         }
 
-        /* ===== VISUAL RESULT STYLES ===== */
+        .error-message .btn {
+            margin-top: 10px;
+        }
+
+        /* ========================================
+           FINAL RESULT VISUAL
+           ======================================== */
         .final-result {
             display: none;
             animation: fadeInUp 0.8s ease;
@@ -333,8 +387,13 @@
         }
 
         @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-15px);
+            }
         }
 
         .result-title {
@@ -364,9 +423,8 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            position: relative;
             background: white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
         .score-circle .score-number {
@@ -406,10 +464,18 @@
             font-size: 14px;
         }
 
-        .progress-bar.excellent { background: linear-gradient(90deg, #28a745, #20c997); }
-        .progress-bar.good { background: linear-gradient(90deg, #17a2b8, #28a745); }
-        .progress-bar.average { background: linear-gradient(90deg, #ffc107, #fd7e14); }
-        .progress-bar.poor { background: linear-gradient(90deg, #dc3545, #fd7e14); }
+        .progress-bar.excellent {
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+        .progress-bar.good {
+            background: linear-gradient(90deg, #17a2b8, #28a745);
+        }
+        .progress-bar.average {
+            background: linear-gradient(90deg, #ffc107, #fd7e14);
+        }
+        .progress-bar.poor {
+            background: linear-gradient(90deg, #dc3545, #fd7e14);
+        }
 
         .stats-grid {
             display: grid;
@@ -422,7 +488,7 @@
             background: white;
             padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             text-align: center;
         }
 
@@ -431,10 +497,18 @@
             font-weight: 700;
         }
 
-        .stat-item .stat-number.green { color: #28a745; }
-        .stat-item .stat-number.red { color: #dc3545; }
-        .stat-item .stat-number.blue { color: #667eea; }
-        .stat-item .stat-number.orange { color: #fd7e14; }
+        .stat-item .stat-number.green {
+            color: #28a745;
+        }
+        .stat-item .stat-number.red {
+            color: #dc3545;
+        }
+        .stat-item .stat-number.blue {
+            color: #667eea;
+        }
+        .stat-item .stat-number.orange {
+            color: #fd7e14;
+        }
 
         .stat-item .stat-label {
             font-size: 12px;
@@ -459,11 +533,22 @@
             margin: 5px;
         }
 
-        .badge-gold { background: #ffd700; color: #856404; }
-        .badge-silver { background: #c0c0c0; color: #383d41; }
-        .badge-bronze { background: #cd7f32; color: white; }
+        .badge-gold {
+            background: #ffd700;
+            color: #856404;
+        }
+        .badge-silver {
+            background: #c0c0c0;
+            color: #383d41;
+        }
+        .badge-bronze {
+            background: #cd7f32;
+            color: white;
+        }
 
-        /* Confetti effect */
+        /* ========================================
+           CONFETTI
+           ======================================== */
         .confetti-container {
             position: fixed;
             top: 0;
@@ -484,24 +569,33 @@
         }
 
         @keyframes confettiFall {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
         }
 
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
             }
-            
+
             .options {
                 grid-template-columns: 1fr;
             }
-            
+
             .stats {
                 flex-direction: column;
                 gap: 10px;
             }
-            
+
             .header h1 {
                 font-size: 22px;
             }
@@ -531,22 +625,27 @@
 </head>
 <body>
     <div class="container">
+        <!-- ===== HEADER ===== -->
         <div class="header">
             <h1>📝 Aplikasi Kuis</h1>
             <p>Soal akan diacak setiap kali Anda membuka atau mereset kuis</p>
         </div>
 
+        <!-- ===== LOADING ===== -->
         <div id="loading" class="loading show">
             <div class="spinner"></div>
             <p>Memuat soal...</p>
         </div>
 
+        <!-- ===== ERROR MESSAGE ===== -->
         <div id="errorMessage" class="error-message">
-            <strong>Error:</strong> <span id="errorText">Gagal memuat soal</span>
+            <strong>⚠️ Error:</strong>
+            <span id="errorText">Gagal memuat soal</span>
         </div>
 
-        <!-- Quiz Content -->
+        <!-- ===== QUIZ CONTENT ===== -->
         <div id="quizContent" style="display: none;">
+            <!-- Stats -->
             <div class="stats">
                 <div>
                     <div class="number" id="currentQuestion">1</div>
@@ -562,33 +661,35 @@
                 </div>
             </div>
 
+            <!-- Question -->
             <div class="question-box">
                 <h2 id="questionText">Memuat soal...</h2>
             </div>
 
-            <div class="options" id="optionsContainer">
-                <!-- Options will be inserted here -->
-            </div>
+            <!-- Options -->
+            <div class="options" id="optionsContainer"></div>
 
+            <!-- Buttons -->
             <div class="btn-group" id="btnGroup">
                 <button class="btn btn-success" id="checkBtn" disabled>✅ Cek Jawaban</button>
                 <button class="btn btn-warning" id="nextBtn" style="display: none;">➡️ Soal Selanjutnya</button>
                 <button class="btn btn-danger" id="resetBtn">🔄 Reset Kuis</button>
             </div>
 
+            <!-- Result per question -->
             <div id="resultBox" class="result-box">
                 <h3 id="resultText"></h3>
                 <p id="resultDetail"></p>
             </div>
         </div>
 
-        <!-- Final Result Visual -->
+        <!-- ===== FINAL RESULT ===== -->
         <div id="finalResult" class="final-result">
             <div class="result-card">
                 <div class="result-emoji" id="resultEmoji">🏆</div>
                 <div class="result-title" id="resultTitle">Kuis Selesai!</div>
                 <div class="result-subtitle" id="resultSubtitle">Bagus sekali!</div>
-                
+
                 <div class="score-circle-container">
                     <div class="score-circle">
                         <span class="score-number" id="finalScore">0</span>
@@ -622,9 +723,7 @@
                     </div>
                 </div>
 
-                <div id="achievementBadges" style="margin: 15px 0;">
-                    <!-- Badges will be inserted here -->
-                </div>
+                <div id="achievementBadges" style="margin: 15px 0;"></div>
 
                 <div class="result-actions">
                     <button class="btn btn-primary" onclick="resetQuiz()">🔄 Kerjakan Ulang</button>
@@ -634,14 +733,20 @@
         </div>
     </div>
 
-    <!-- Confetti Container -->
+    <!-- ===== CONFETTI CONTAINER ===== -->
     <div id="confettiContainer" class="confetti-container"></div>
 
     <script>
-        // Konfigurasi Google Sheets
-        // Ganti dengan URL deployment Google Apps Script Anda
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiKNMGyX7a9i2KUJW73CeQMQgmqvEnC8bQshgP19e67-PDWxmrKee3bIvqKYegIqbwhA/exec';
-        
+        // ============================================================
+        //  KONFIGURASI
+        // ============================================================
+        // 🔧 GANTI URL INI DENGAN URL DEPLOYMENT GOOGLE APPS SCRIPT ANDA
+        const SCRIPT_URL = 'https://script.google.com/macros/s/xxx/exec';
+        // Contoh: https://script.google.com/macros/s/AKfycbzQz4qcI8.../exec
+
+        // ============================================================
+        //  STATE
+        // ============================================================
         let questions = [];
         let currentQuestions = [];
         let currentIndex = 0;
@@ -652,7 +757,9 @@
         let wrongAnswers = 0;
         let answeredQuestions = 0;
 
-        // DOM Elements
+        // ============================================================
+        //  DOM REFERENSI
+        // ============================================================
         const loading = document.getElementById('loading');
         const quizContent = document.getElementById('quizContent');
         const finalResult = document.getElementById('finalResult');
@@ -671,46 +778,146 @@
         const resultDetail = document.getElementById('resultDetail');
         const btnGroup = document.getElementById('btnGroup');
 
-        // Load questions from Google Sheets
+        // ============================================================
+        //  LOAD QUESTIONS - DENGAN VALIDASI ROBUST
+        // ============================================================
         async function loadQuestions() {
             try {
+                // Tampilkan loading
                 loading.classList.add('show');
                 quizContent.style.display = 'none';
                 finalResult.classList.remove('show');
                 errorMessage.classList.remove('show');
 
+                console.log('🔄 Mengambil data dari:', SCRIPT_URL);
+
                 const response = await fetch(SCRIPT_URL);
+
+                // Cek response HTTP
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
+
+                // Parse JSON
                 const data = await response.json();
-                
-                if (!data || data.length === 0) {
-                    throw new Error('Tidak ada data soal');
+                console.log('📦 Data dari server:', data);
+
+                // ===== VALIDASI DATA =====
+
+                // 1. Cek data null/undefined
+                if (!data) {
+                    throw new Error('Data kosong (null/undefined)');
                 }
 
-                questions = data;
+                // 2. Cek jika data adalah object error
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // 3. Cek jika data bukan array
+                if (!Array.isArray(data)) {
+                    console.error('❌ Data bukan array:', data);
+                    throw new Error(
+                        'Data yang diterima bukan array. Periksa format response dari Google Apps Script.'
+                        );
+                }
+
+                // 4. Cek jika array kosong
+                if (data.length === 0) {
+                    throw new Error(
+                        'Tidak ada data soal. Periksa isi Google Sheets Anda. ' +
+                        'Pastikan ada minimal 1 baris data dengan header yang benar.'
+                    );
+                }
+
+                // 5. Validasi setiap soal memiliki field yang diperlukan
+                const validQuestions = data.filter(q => {
+                    const hasSoal = q.Soal && q.Soal.toString().trim() !== '';
+                    const hasPilihanA = q['Pilihan A'] && q['Pilihan A'].toString().trim() !== '';
+                    const hasJawaban = q.Jawaban && q.Jawaban.toString().trim() !== '';
+
+                    // Log peringatan untuk soal yang tidak lengkap
+                    if (!hasSoal) console.warn('⚠️ Soal tanpa pertanyaan:', q);
+                    if (!hasPilihanA) console.warn('⚠️ Soal tanpa pilihan A:', q);
+                    if (!hasJawaban) console.warn('⚠️ Soal tanpa jawaban:', q);
+
+                    return hasSoal && hasPilihanA && hasJawaban;
+                });
+
+                if (validQuestions.length === 0) {
+                    throw new Error(
+                        'Tidak ada soal yang valid. ' +
+                        'Pastikan kolom: Soal, Pilihan A, Pilihan B, Pilihan C, Pilihan D, Jawaban terisi dengan benar.'
+                    );
+                }
+
+                // Simpan data yang valid
+                questions = validQuestions;
+                console.log(`✅ Berhasil memuat ${questions.length} soal`);
+
+                // Mulai kuis
                 shuffleQuestions();
                 displayQuestion();
-                
+
+                // Sembunyikan loading, tampilkan konten
                 loading.classList.remove('show');
                 quizContent.style.display = 'block';
+
             } catch (error) {
-                console.error('Error loading questions:', error);
+                console.error('❌ Error:', error);
+
+                // Sembunyikan loading
                 loading.classList.remove('show');
-                errorText.textContent = error.message || 'Gagal memuat soal. Periksa koneksi internet dan URL script.';
+
+                // Buat pesan error yang user-friendly
+                let userMessage = error.message || 'Gagal memuat soal.';
+
+                if (error.message.includes('HTTP')) {
+                    userMessage =
+                        '⚠️ Gagal terhubung ke server. Periksa URL Google Apps Script dan koneksi internet.';
+                } else if (error.message.includes('array') || error.message.includes('format')) {
+                    userMessage =
+                        '⚠️ Format data tidak sesuai. Pastikan Google Apps Script mengembalikan array JSON. ' +
+                        'Periksa console browser (F12) untuk detail.';
+                } else if (error.message.includes('kosong') || error.message.includes('data soal')) {
+                    userMessage = '⚠️ ' + error.message;
+                }
+
+                errorText.textContent = userMessage;
                 errorMessage.classList.add('show');
+
+                // Hapus tombol refresh lama jika ada
+                const oldBtn = errorMessage.querySelector('.btn');
+                if (oldBtn) oldBtn.remove();
+
+                // Tambahkan tombol refresh
+                const refreshBtn = document.createElement('button');
+                refreshBtn.className = 'btn btn-primary';
+                refreshBtn.textContent = '🔄 Coba Lagi';
+                refreshBtn.onclick = () => {
+                    errorMessage.classList.remove('show');
+                    loadQuestions();
+                };
+                errorMessage.appendChild(refreshBtn);
             }
         }
 
-        // Shuffle questions using Fisher-Yates algorithm
+        // ============================================================
+        //  SHUFFLE QUESTIONS (Fisher-Yates)
+        // ============================================================
         function shuffleQuestions() {
+            if (!questions || questions.length === 0) {
+                console.warn('⚠️ Tidak ada soal untuk diacak');
+                return;
+            }
+
             currentQuestions = [...questions];
             for (let i = currentQuestions.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [currentQuestions[i], currentQuestions[j]] = [currentQuestions[j], currentQuestions[i]];
             }
+
+            // Reset state
             currentIndex = 0;
             score = 0;
             correctAnswers = 0;
@@ -721,44 +928,79 @@
             updateStats();
         }
 
-        // Display current question
+        // ============================================================
+        //  DISPLAY QUESTION
+        // ============================================================
         function displayQuestion() {
+            // Cek jika ada soal
+            if (!currentQuestions || currentQuestions.length === 0) {
+                questionText.textContent = '⚠️ Tidak ada soal yang tersedia';
+                optionsContainer.innerHTML = '';
+                return;
+            }
+
+            // Cek jika kuis selesai
             if (currentIndex >= currentQuestions.length) {
                 showFinalResult();
                 return;
             }
 
             const q = currentQuestions[currentIndex];
-            questionText.textContent = q.Soal || 'Soal tidak tersedia';
-            
-            // Clear options
-            optionsContainer.innerHTML = '';
-            
-            // Create option buttons
-            const options = [
-                { label: 'A', value: q['Pilihan A'] },
-                { label: 'B', value: q['Pilihan B'] },
-                { label: 'C', value: q['Pilihan C'] },
-                { label: 'D', value: q['Pilihan D'] }
-            ];
 
-            options.forEach((opt, index) => {
+            // Validasi soal
+            if (!q || !q.Soal) {
+                questionText.textContent = '⚠️ Soal tidak valid';
+                optionsContainer.innerHTML = '';
+                return;
+            }
+
+            // Tampilkan pertanyaan
+            questionText.textContent = q.Soal;
+
+            // Kosongkan options
+            optionsContainer.innerHTML = '';
+
+            // Buat pilihan jawaban
+            const optionLabels = ['A', 'B', 'C', 'D'];
+            const optionFields = ['Pilihan A', 'Pilihan B', 'Pilihan C', 'Pilihan D'];
+
+            let hasValidOptions = false;
+
+            optionLabels.forEach((label, index) => {
+                const field = optionFields[index];
+                const value = q[field] || '';
+
+                if (value.toString().trim() !== '') {
+                    hasValidOptions = true;
+                }
+
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
-                btn.textContent = `${opt.label}. ${opt.value || 'Tidak tersedia'}`;
-                btn.dataset.value = opt.label;
-                btn.onclick = () => selectOption(btn, opt.label);
+                btn.textContent = `${label}. ${value || 'Tidak tersedia'}`;
+                btn.dataset.value = label;
+                btn.onclick = () => selectOption(btn, label);
                 optionsContainer.appendChild(btn);
             });
+
+            // Jika tidak ada pilihan yang valid
+            if (!hasValidOptions) {
+                optionsContainer.innerHTML = `
+                            <p style="color: red; text-align: center; grid-column: 1 / -1;">
+                                ⚠️ Tidak ada pilihan jawaban untuk soal ini
+                            </p>
+                        `;
+            }
 
             // Reset state
             selectedOption = null;
             isAnswered = false;
             checkBtn.disabled = true;
+            checkBtn.style.display = 'inline-block';
             nextBtn.style.display = 'none';
             resultBox.classList.remove('show', 'success', 'fail');
-            
-            // Enable all option buttons
+            btnGroup.style.justifyContent = 'space-between';
+
+            // Enable semua option button
             document.querySelectorAll('.option-btn').forEach(btn => {
                 btn.disabled = false;
                 btn.className = 'option-btn';
@@ -767,28 +1009,36 @@
             updateStats();
         }
 
-        // Select an option
+        // ============================================================
+        //  SELECT OPTION
+        // ============================================================
         function selectOption(button, value) {
             if (isAnswered) return;
-            
-            // Remove selected class from all buttons
+            if (!button || button.disabled) return;
+
+            // Hapus class selected dari semua button
             document.querySelectorAll('.option-btn').forEach(btn => {
                 btn.classList.remove('selected');
             });
-            
+
             button.classList.add('selected');
             selectedOption = value;
             checkBtn.disabled = false;
         }
 
-        // Check answer
+        // ============================================================
+        //  CHECK ANSWER
+        // ============================================================
         function checkAnswer() {
             if (!selectedOption || isAnswered) return;
-            
+
             const q = currentQuestions[currentIndex];
-            const correctAnswer = q.Jawaban || 'A';
+            if (!q) return;
+
+            const correctAnswer = q.Jawaban ? q.Jawaban.toString().trim().toUpperCase() : 'A';
             const isCorrect = selectedOption === correctAnswer;
-            
+
+            // Update statistik
             if (isCorrect) {
                 score++;
                 correctAnswers++;
@@ -797,31 +1047,35 @@
             }
             answeredQuestions++;
             updateStats();
-            
-            // Show correct/wrong on options
+
+            // Tampilkan benar/salah pada options
             document.querySelectorAll('.option-btn').forEach(btn => {
                 btn.disabled = true;
-                if (btn.dataset.value === correctAnswer) {
+                const btnValue = btn.dataset.value;
+                if (btnValue === correctAnswer) {
                     btn.classList.add('correct');
-                } else if (btn.dataset.value === selectedOption && !isCorrect) {
+                } else if (btnValue === selectedOption && !isCorrect) {
                     btn.classList.add('wrong');
                 }
             });
-            
-            // Show result
+
+            // Tampilkan result box
             resultBox.className = 'result-box show';
             resultBox.classList.add(isCorrect ? 'success' : 'fail');
             resultText.textContent = isCorrect ? '✅ Benar!' : '❌ Salah!';
-            resultDetail.textContent = isCorrect ? 
-                'Jawaban Anda tepat!' : 
+            resultDetail.textContent = isCorrect ?
+                'Jawaban Anda tepat! 🎉' :
                 `Jawaban yang benar adalah: ${correctAnswer}`;
-            
+
             isAnswered = true;
             checkBtn.disabled = true;
+            checkBtn.style.display = 'none';
             nextBtn.style.display = 'inline-block';
         }
 
-        // Next question
+        // ============================================================
+        //  NEXT QUESTION
+        // ============================================================
         function nextQuestion() {
             currentIndex++;
             if (currentIndex < currentQuestions.length) {
@@ -831,41 +1085,45 @@
             }
         }
 
-        // Show final result with visual
+        // ============================================================
+        //  SHOW FINAL RESULT - VISUAL
+        // ============================================================
         function showFinalResult() {
             quizContent.style.display = 'none';
             finalResult.classList.add('show');
-            
-            const total = currentQuestions.length;
-            const percentage = Math.round((score / total) * 100);
-            const accuracy = total > 0 ? Math.round((correctAnswers / answeredQuestions) * 100) : 0;
-            
-            // Update final result elements
+
+            const total = currentQuestions.length || 0;
+            const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+            const accuracy = answeredQuestions > 0 ?
+                Math.round((correctAnswers / answeredQuestions) * 100) :
+                0;
+
+            // Update angka-angka
             document.getElementById('finalScore').textContent = score;
             document.getElementById('finalTotal').textContent = total;
             document.getElementById('correctCount').textContent = correctAnswers;
             document.getElementById('wrongCount').textContent = wrongAnswers;
             document.getElementById('totalAnswered').textContent = answeredQuestions;
             document.getElementById('accuracyRate').textContent = accuracy + '%';
-            
+
             // Progress bar
             const progressBar = document.getElementById('progressBar');
             const progressText = document.getElementById('progressText');
             progressBar.style.width = percentage + '%';
             progressText.textContent = percentage + '%';
-            
-            // Set progress bar class
+
+            // Warna progress bar
             progressBar.className = 'progress-bar';
             if (percentage >= 80) progressBar.classList.add('excellent');
             else if (percentage >= 70) progressBar.classList.add('good');
             else if (percentage >= 60) progressBar.classList.add('average');
             else progressBar.classList.add('poor');
-            
-            // Set emoji and messages
+
+            // Emoji, title, subtitle
             const emoji = document.getElementById('resultEmoji');
             const title = document.getElementById('resultTitle');
             const subtitle = document.getElementById('resultSubtitle');
-            
+
             if (percentage >= 90) {
                 emoji.textContent = '🌟';
                 title.textContent = 'Luar Biasa!';
@@ -889,33 +1147,47 @@
                 title.textContent = 'Terus Belajar!';
                 subtitle.textContent = 'Jangan menyerah, Anda bisa melakukannya! 💪';
             }
-            
+
             // Achievement badges
             const badgesContainer = document.getElementById('achievementBadges');
             badgesContainer.innerHTML = '';
-            
+
             if (percentage >= 80) {
-                badgesContainer.innerHTML += '<span class="achievement-badge badge-gold">🥇 Emas</span>';
+                badgesContainer.innerHTML +=
+                    '<span class="achievement-badge badge-gold">🥇 Emas</span>';
             }
             if (percentage >= 70 && percentage < 80) {
-                badgesContainer.innerHTML += '<span class="achievement-badge badge-silver">🥈 Perak</span>';
+                badgesContainer.innerHTML +=
+                    '<span class="achievement-badge badge-silver">🥈 Perak</span>';
             }
             if (percentage >= 60 && percentage < 70) {
-                badgesContainer.innerHTML += '<span class="achievement-badge badge-bronze">🥉 Perunggu</span>';
+                badgesContainer.innerHTML +=
+                    '<span class="achievement-badge badge-bronze">🥉 Perunggu</span>';
             }
             if (score === total && total > 0) {
-                badgesContainer.innerHTML += '<span class="achievement-badge badge-gold">🏅 Sempurna!</span>';
+                badgesContainer.innerHTML +=
+                    '<span class="achievement-badge badge-gold">🏅 Sempurna!</span>';
             }
-            if (answeredQuestions === total) {
-                badgesContainer.innerHTML += '<span class="achievement-badge badge-silver">📝 Tuntas!</span>';
+            if (answeredQuestions === total && total > 0) {
+                badgesContainer.innerHTML +=
+                    '<span class="achievement-badge badge-silver">📝 Tuntas!</span>';
+            }
+            if (badgesContainer.innerHTML === '') {
+                badgesContainer.innerHTML =
+                    '<span class="achievement-badge" style="background:#f8f9fa;color:#666;">💪 Terus Berlatih!</span>';
             }
         }
 
-        // Launch confetti effect
+        // ============================================================
+        //  CONFETTI EFFECT
+        // ============================================================
         function launchConfetti() {
             const container = document.getElementById('confettiContainer');
+            if (!container) return;
+
             const colors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff6fb7', '#a66cff'];
-            
+            container.innerHTML = '';
+
             for (let i = 0; i < 100; i++) {
                 const confetti = document.createElement('div');
                 confetti.className = 'confetti';
@@ -928,18 +1200,21 @@
                 confetti.style.animationDelay = (Math.random() * 2) + 's';
                 container.appendChild(confetti);
             }
-            
+
             setTimeout(() => {
                 container.innerHTML = '';
             }, 5000);
         }
 
-        // Share result
+        // ============================================================
+        //  SHARE RESULT
+        // ============================================================
         function shareResult() {
-            const total = currentQuestions.length;
-            const percentage = Math.round((score / total) * 100);
-            const text = `🎯 Hasil Kuis Saya:\nSkor: ${score}/${total}\nPersentase: ${percentage}%\n\n${percentage >= 80 ? '🌟 Luar Biasa!' : percentage >= 60 ? '💪 Cukup Baik!' : '📖 Terus Belajar!'}`;
-            
+            const total = currentQuestions.length || 0;
+            const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+            const text =
+                `🎯 Hasil Kuis Saya:\nSkor: ${score}/${total}\nPersentase: ${percentage}%\n\n${percentage >= 80 ? '🌟 Luar Biasa!' : percentage >= 60 ? '💪 Cukup Baik!' : '📖 Terus Belajar!'}`;
+
             if (navigator.share) {
                 navigator.share({
                     title: 'Hasil Kuis',
@@ -947,43 +1222,69 @@
                 }).catch(() => {});
             } else {
                 navigator.clipboard.writeText(text).then(() => {
-                    alert('Hasil telah disalin ke clipboard!');
+                    alert('✅ Hasil telah disalin ke clipboard!');
                 }).catch(() => {
                     alert(text);
                 });
             }
         }
 
-        // Update statistics
+        // ============================================================
+        //  UPDATE STATS
+        // ============================================================
         function updateStats() {
-            currentQuestionEl.textContent = Math.min(currentIndex + 1, currentQuestions.length);
-            totalQuestionsEl.textContent = currentQuestions.length;
+            const total = currentQuestions ? currentQuestions.length : 0;
+            currentQuestionEl.textContent = total > 0 ?
+                Math.min(currentIndex + 1, total) :
+                0;
+            totalQuestionsEl.textContent = total;
             scoreEl.textContent = score;
         }
 
-        // Reset quiz
+        // ============================================================
+        //  RESET QUIZ
+        // ============================================================
         function resetQuiz() {
+            // Jika belum ada data, reload dari server
+            if (!questions || questions.length === 0) {
+                loadQuestions();
+                return;
+            }
+
+            // Sembunyikan final result, tampilkan quiz
             finalResult.classList.remove('show');
             quizContent.style.display = 'block';
+
+            // Acak ulang dan tampilkan
             shuffleQuestions();
             displayQuestion();
+
+            // Reset tombol
             checkBtn.style.display = 'inline-block';
             nextBtn.style.display = 'none';
             btnGroup.style.justifyContent = 'space-between';
             resultBox.classList.remove('show', 'success', 'fail');
+
+            // Hapus confetti
             document.getElementById('confettiContainer').innerHTML = '';
         }
 
-        // Expose resetQuiz and shareResult to global scope
+        // ============================================================
+        //  EXPOSE KE GLOBAL (untuk onclick di HTML)
+        // ============================================================
         window.resetQuiz = resetQuiz;
         window.shareResult = shareResult;
 
-        // Event listeners
+        // ============================================================
+        //  EVENT LISTENERS
+        // ============================================================
         checkBtn.addEventListener('click', checkAnswer);
         nextBtn.addEventListener('click', nextQuestion);
         resetBtn.addEventListener('click', resetQuiz);
 
-        // Initialize
+        // ============================================================
+        //  START APP
+        // ============================================================
         loadQuestions();
     </script>
 </body>
