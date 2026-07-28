@@ -174,17 +174,6 @@
             color: #dc3545;
         }
 
-        /* State: Loading (sedang memuat soal baru) */
-        .soal-box.loading {
-            border-color: #ffc107;
-            background: #fff3cd;
-            cursor: wait;
-        }
-
-        .soal-box.loading .nomor {
-            color: #ffc107;
-        }
-
         /* State: Habis (tidak ada soal tersisa) */
         .soal-box.empty {
             border-color: #e0e0e0;
@@ -299,9 +288,38 @@
             font-size: 22px;
             font-weight: 600;
             color: #333;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             line-height: 1.5;
             padding: 10px 0;
+        }
+
+        /* ===== BINTANG ===== */
+        .modal .bintang-section {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .modal .bintang-section .label {
+            font-weight: 700;
+            color: #856404;
+            font-size: 16px;
+        }
+
+        .modal .bintang-section .bintang-value {
+            font-size: 28px;
+            letter-spacing: 4px;
+            color: #ffc107;
+        }
+
+        .modal .bintang-section .bintang-value.empty {
+            color: #ddd;
         }
 
         .modal .option-grid {
@@ -469,17 +487,6 @@
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #218838;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
-        }
-
         /* ========================================
            LOADING & ERROR
            ======================================== */
@@ -564,6 +571,10 @@
                 padding: 12px 16px;
                 font-size: 15px;
             }
+
+            .modal .bintang-section .bintang-value {
+                font-size: 22px;
+            }
         }
 
         @media (max-width: 450px) {
@@ -594,6 +605,10 @@
 
             .modal .soal-text {
                 font-size: 16px;
+            }
+
+            .modal .bintang-section .bintang-value {
+                font-size: 18px;
             }
         }
     </style>
@@ -665,6 +680,12 @@
 
             <div class="soal-text" id="modalSoal">Memuat soal...</div>
 
+            <!-- ===== BINTANG SECTION ===== -->
+            <div class="bintang-section" id="modalBintang">
+                <span class="label">⭐ Bintang:</span>
+                <span class="bintang-value" id="modalBintangValue">⭐⭐⭐⭐⭐</span>
+            </div>
+
             <div class="option-grid" id="modalOptions">
                 <!-- Opsi akan diisi JS -->
             </div>
@@ -692,9 +713,9 @@
         // ============================================================
         //  STATE
         // ============================================================
-        let allQuestions = []; // Semua soal dari server
-        let queueQuestions = []; // Antrian soal yang belum ditampilkan
-        let activeBoxes = []; // Array 10 elemen: { soal, status, index }
+        let allQuestions = [];
+        let queueQuestions = [];
+        let activeBoxes = [];
         let score = 0;
         let completed = 0;
 
@@ -720,6 +741,7 @@
         const modalOverlay = document.getElementById('modalOverlay');
         const modalNomor = document.getElementById('modalNomor');
         const modalSoal = document.getElementById('modalSoal');
+        const modalBintangValue = document.getElementById('modalBintangValue');
         const modalOptions = document.getElementById('modalOptions');
         const modalFeedback = document.getElementById('modalFeedback');
         const modalCekBtn = document.getElementById('modalCekBtn');
@@ -747,6 +769,7 @@
                     throw new Error('Tidak ada soal');
                 }
 
+                // Validasi dengan kolom Bintang opsional
                 const valid = data.filter(q =>
                     q.Soal?.trim() &&
                     q['Pilihan A']?.trim() &&
@@ -777,7 +800,6 @@
         //  RESET
         // ============================================================
         function resetQuiz() {
-            // Acak semua soal
             const shuffled = [...allQuestions];
             for (let i = shuffled.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -789,13 +811,12 @@
             score = 0;
             completed = 0;
 
-            // Isi 10 kotak pertama
             for (let i = 0; i < BOX_COUNT; i++) {
                 if (queueQuestions.length > 0) {
                     const soal = queueQuestions.shift();
                     activeBoxes.push({
                         soal: soal,
-                        status: 'pending', // pending | correct | wrong
+                        status: 'pending',
                         nomorAsli: i + 1
                     });
                 } else {
@@ -871,12 +892,31 @@
             if (newSoal) {
                 activeBoxes[index].soal = newSoal;
                 activeBoxes[index].status = 'pending';
-                // Nomor tetap sama
             } else {
                 activeBoxes[index].soal = null;
                 activeBoxes[index].status = 'empty';
             }
             renderGrid();
+        }
+
+        // ============================================================
+        //  RENDER BINTANG
+        // ============================================================
+        function renderBintang(value) {
+            if (!value || value.trim() === '') {
+                return '<span style="color:#ddd;">☆☆☆☆☆</span>';
+            }
+
+            // Ubah ke string dan ambil karakter pertama
+            const str = value.toString().trim();
+            const count = parseInt(str) || 0;
+
+            // Maksimal 5 bintang
+            const starCount = Math.min(Math.max(count, 0), 5);
+            const filled = '⭐'.repeat(starCount);
+            const empty = '☆'.repeat(5 - starCount);
+
+            return filled + empty;
         }
 
         // ============================================================
@@ -897,6 +937,10 @@
             const done = completed;
             modalNomor.textContent = `Soal ${box.nomorAsli} (${done + 1}/${total})`;
             modalSoal.textContent = q.Soal;
+
+            // ===== TAMPILKAN BINTANG =====
+            const bintangValue = q['Bintang'] || '';
+            modalBintangValue.innerHTML = renderBintang(bintangValue);
 
             modalFeedback.textContent = '';
             modalFeedback.className = 'feedback';
@@ -988,16 +1032,13 @@
                 modalNextBtn.textContent = '➡️ Soal Berikutnya';
                 modalNextBtn.onclick = () => {
                     closeModal();
-                    // Ganti soal di kotak ini dengan yang baru
                     replaceQuestion(index);
-                    // Cek apakah masih ada soal tersisa
                     if (queueQuestions.length === 0 && !activeBoxes.some(b => b.status === 'pending' || b.status ===
                             'wrong')) {
                         setTimeout(() => {
                             alert('🎉 Semua soal selesai! Skor: ' + score + '/' + allQuestions.length);
                         }, 300);
                     } else {
-                        // Buka otomatis kotak berikutnya yang pending
                         const nextIndex = findNextPending(index);
                         if (nextIndex !== -1) {
                             setTimeout(() => openModal(nextIndex), 400);
