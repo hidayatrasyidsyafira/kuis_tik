@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kuis Dinamis - NISN & Bintang</title>
+    <title>Kuis Berdasarkan Tingkatan</title>
     <style>
         /* ========================================
            RESET & BASE
@@ -196,6 +196,15 @@
 
         .siswa-info .nisn-label {
             color: #666;
+            font-size: 14px;
+        }
+
+        .siswa-info .tingkat-label {
+            background: #667eea;
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-weight: 700;
             font-size: 14px;
         }
 
@@ -418,6 +427,15 @@
             font-size: 18px;
             font-weight: 700;
             color: #667eea;
+        }
+
+        .modal-header .tingkat-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
         }
 
         .modal-header .close-btn {
@@ -736,8 +754,8 @@
     <div class="container">
         <!-- HEADER -->
         <div class="header">
-            <h1>📦 Kuis Dinamis</h1>
-            <p>Masukkan NISN untuk memulai kuis ⭐</p>
+            <h1>📚 Kuis Berdasarkan Tingkatan</h1>
+            <p>Masukkan NISN untuk memulai kuis sesuai tingkat Anda ⭐</p>
         </div>
 
         <!-- ========================================
@@ -778,6 +796,7 @@
             <div class="siswa-info" id="siswaInfo">
                 <span class="nama" id="siswaNama">-</span>
                 <span class="nisn-label">NISN: <strong id="siswaNisn">-</strong></span>
+                <span class="tingkat-label" id="siswaTingkat">X</span>
                 <span class="bintang-total">⭐ <span id="siswaBintang">0</span></span>
                 <button class="btn-logout" onclick="logout()">🚪 Keluar</button>
             </div>
@@ -819,6 +838,7 @@
         <div class="modal">
             <div class="modal-header">
                 <span class="nomor-soal" id="modalNomor">Soal 1</span>
+                <span class="tingkat-badge" id="modalTingkat">X</span>
                 <button class="close-btn" onclick="closeModal()">✕</button>
             </div>
 
@@ -845,6 +865,7 @@
         // ============================================================
         //  KONFIGURASI
         // ============================================================
+        // 🔧 GANTI DENGAN URL DEPLOYMENT ANDA
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycHGGdzzfUoTFEKz7QdIsL24N_DU5ZJVcfLvGFKpL9Z8fG8YBE074AxoUeVxLNAFmI/exec';
 
         const BOX_COUNT = 10;
@@ -858,7 +879,7 @@
         let score = 0;
         let completed = 0;
 
-        let siswaData = null; // { nama, nisn, bintang, rowIndex }
+        let siswaData = null; // { nama, nisn, tingkat, bintang, rowIndex }
         let isModalOpen = false;
         let currentBoxIndex = -1;
         let selectedOption = null;
@@ -879,6 +900,7 @@
 
         const siswaNama = document.getElementById('siswaNama');
         const siswaNisn = document.getElementById('siswaNisn');
+        const siswaTingkat = document.getElementById('siswaTingkat');
         const siswaBintang = document.getElementById('siswaBintang');
 
         const gridContainer = document.getElementById('gridContainer');
@@ -890,6 +912,7 @@
         // Modal
         const modalOverlay = document.getElementById('modalOverlay');
         const modalNomor = document.getElementById('modalNomor');
+        const modalTingkat = document.getElementById('modalTingkat');
         const modalSoal = document.getElementById('modalSoal');
         const modalBintangValue = document.getElementById('modalBintangValue');
         const modalOptions = document.getElementById('modalOptions');
@@ -907,30 +930,17 @@
                 quizContent.classList.add('hidden');
                 errorMessage.classList.remove('show');
 
+                // Hanya ambil struktur soal, nanti difilter berdasarkan tingkat siswa
                 const response = await fetch(SCRIPT_URL + '?action=getSoal');
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-                const data = await response.json();
+                const result = await response.json();
 
-                if (!data || data.error) {
-                    throw new Error(data?.error || 'Data kosong');
+                if (!result.success || !result.data) {
+                    throw new Error(result?.error || 'Data kosong');
                 }
 
-                if (!Array.isArray(data) || data.length === 0) {
-                    throw new Error('Tidak ada soal');
-                }
-
-                const valid = data.filter(q =>
-                    q.Soal?.trim() &&
-                    q['Pilihan A']?.trim() &&
-                    q.Jawaban?.trim()
-                );
-
-                if (valid.length === 0) {
-                    throw new Error('Tidak ada soal valid');
-                }
-
-                allQuestions = valid;
+                allQuestions = result.data;
                 console.log(`✅ ${allQuestions.length} soal dimuat`);
 
                 loading.classList.remove('show');
@@ -977,7 +987,27 @@
                 // Update info siswa
                 siswaNama.textContent = siswaData.nama;
                 siswaNisn.textContent = siswaData.nisn;
+                siswaTingkat.textContent = '📚 ' + siswaData.tingkat;
                 siswaBintang.textContent = siswaData.bintang;
+
+                // Filter soal berdasarkan tingkat siswa
+                const tingkatSiswa = siswaData.tingkat.trim();
+                const filtered = allQuestions.filter(q => {
+                    const qTingkat = q['Tingkat'] ? q['Tingkat'].toString().trim() : '';
+                    return qTingkat === tingkatSiswa;
+                });
+
+                if (filtered.length === 0) {
+                    loginError.textContent = `❌ Tidak ada soal untuk tingkat ${tingkatSiswa}`;
+                    loginError.classList.add('show');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = '🚀 Mulai Kuis';
+                    return;
+                }
+
+                // Ganti allQuestions dengan yang sudah difilter
+                allQuestions = filtered;
+                console.log(`✅ ${allQuestions.length} soal untuk tingkat ${tingkatSiswa}`);
 
                 // Sembunyikan login, tampilkan kuis
                 loginSection.classList.add('hidden');
@@ -1136,15 +1166,13 @@
                 const params = new URLSearchParams({
                     action: 'updateBintang',
                     nisn: siswaData.nisn,
-                    bintang: bintangDitambah,
-                    soalIndex: currentBoxIndex
+                    bintang: bintangDitambah
                 });
 
                 const response = await fetch(SCRIPT_URL + '?' + params.toString());
                 const result = await response.json();
 
                 if (result.success) {
-                    // Update tampilan bintang
                     siswaBintang.textContent = result.bintangTotal;
                     siswaData.bintang = result.bintangTotal;
                     console.log('✅ Bintang diupdate:', result);
@@ -1173,6 +1201,7 @@
             const total = allQuestions.length;
             const done = completed;
             modalNomor.textContent = `Soal ${box.nomorAsli} (${done + 1}/${total})`;
+            modalTingkat.textContent = '📚 ' + (q['Tingkat'] || siswaData.tingkat);
             modalSoal.textContent = q.Soal;
 
             // Bintang
@@ -1261,7 +1290,7 @@
                 completed++;
                 box.status = 'correct';
 
-                // ===== TAMBAH BINTANG =====
+                // Tambah bintang
                 const bintangSoal = parseInt(q['Bintang']) || 0;
                 updateBintangKeSheet(bintangSoal);
 
