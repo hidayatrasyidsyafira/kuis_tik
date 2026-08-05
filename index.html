@@ -325,14 +325,14 @@
         }
 
         .soal-box.wrong {
-            border-color: #dc3545;
-            background: #f8d7da;
+            border-color: #ff9800;
+            background: #fff3cd;
             cursor: pointer;
             animation: shake 0.5s ease;
         }
 
         .soal-box.wrong .nomor {
-            color: #dc3545;
+            color: #ff9800;
         }
 
         .soal-box.empty {
@@ -556,8 +556,8 @@
         }
 
         .modal .feedback.salah {
-            background: #f8d7da;
-            color: #dc3545;
+            background: #fff3cd;
+            color: #ff9800;
         }
 
         .modal .btn-group-modal {
@@ -610,6 +610,63 @@
 
         .modal .btn-tutup:hover {
             background: #5a6268;
+        }
+
+        /* ========================================
+           MODAL LOGIN (popup untuk ganti siswa)
+           ======================================== */
+        .modal-login {
+            max-width: 420px;
+        }
+
+        .modal-login .login-box {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .modal-login .login-box h2 {
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .modal-login .login-box p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .modal-login .login-box input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 2px;
+            transition: border-color 0.3s ease;
+        }
+
+        .modal-login .login-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-login .login-box .btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 18px;
+            margin-top: 12px;
+        }
+
+        .modal-login .login-error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .modal-login .login-error.show {
+            display: block;
         }
 
         /* ========================================
@@ -776,7 +833,7 @@
         </div>
 
         <!-- ========================================
-        LOGIN NISN
+        LOGIN NISN (utama)
         ======================================== -->
         <div id="loginSection">
             <div class="login-box">
@@ -832,7 +889,7 @@
     </div>
 
     <!-- ========================================
-    MODAL
+    MODAL SOAL
     ======================================== -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
@@ -861,11 +918,33 @@
         </div>
     </div>
 
+    <!-- ========================================
+    MODAL LOGIN (popup untuk ganti siswa saat salah)
+    ======================================== -->
+    <div class="modal-overlay" id="modalLoginOverlay">
+        <div class="modal modal-login">
+            <div class="modal-header">
+                <h2 style="font-size:20px; color:#333;">🔄 Ganti Siswa</h2>
+                <button class="close-btn" onclick="closeModalLogin()">✕</button>
+            </div>
+            <div class="login-box">
+                <div style="background:#fff3cd; padding:12px; border-radius:10px; margin-bottom:15px; border:2px solid #ff9800;">
+                    <p style="color:#856404; font-weight:600; margin:0;">
+                        ⚠️ Jawaban salah! Silakan login dengan siswa lain untuk mengerjakan ulang soal ini.
+                    </p>
+                </div>
+                <p>Masukkan NISN siswa lain</p>
+                <input type="text" id="modalNisnInput" placeholder="Masukkan NISN" maxlength="20" autocomplete="off">
+                <button class="btn btn-primary" id="modalLoginBtn" onclick="modalLogin()">🚀 Login</button>
+                <div class="login-error" id="modalLoginError">❌ NISN tidak ditemukan. Silakan hubungi admin.</div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ============================================================
         //  KONFIGURASI
         // ============================================================
-        // 🔧 GANTI DENGAN URL DEPLOYMENT ANDA
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycHGGdzzfUoTFEKz7QdIsL24N_DU5ZJVcfLvGFKpL9Z8fG8YBE074AxoUeVxLNAFmI/exec';
 
         const BOX_COUNT = 10;
@@ -884,6 +963,7 @@
         let currentBoxIndex = -1;
         let selectedOption = null;
         let isAnswered = false;
+        let isWrongTriggered = false; // Flag untuk menandai jawaban salah
 
         // ============================================================
         //  DOM
@@ -909,7 +989,7 @@
         const scoreEl = document.getElementById('score');
         const tersisaEl = document.getElementById('tersisa');
 
-        // Modal
+        // Modal Soal
         const modalOverlay = document.getElementById('modalOverlay');
         const modalNomor = document.getElementById('modalNomor');
         const modalTingkat = document.getElementById('modalTingkat');
@@ -919,6 +999,12 @@
         const modalFeedback = document.getElementById('modalFeedback');
         const modalCekBtn = document.getElementById('modalCekBtn');
         const modalNextBtn = document.getElementById('modalNextBtn');
+
+        // Modal Login (popup)
+        const modalLoginOverlay = document.getElementById('modalLoginOverlay');
+        const modalNisnInput = document.getElementById('modalNisnInput');
+        const modalLoginBtn = document.getElementById('modalLoginBtn');
+        const modalLoginError = document.getElementById('modalLoginError');
 
         // ============================================================
         //  LOAD DATA
@@ -930,7 +1016,6 @@
                 quizContent.classList.add('hidden');
                 errorMessage.classList.remove('show');
 
-                // Hanya ambil struktur soal, nanti difilter berdasarkan tingkat siswa
                 const response = await fetch(SCRIPT_URL + '?action=getSoal');
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
@@ -955,29 +1040,42 @@
         }
 
         // ============================================================
-        //  LOGIN
+        //  LOGIN (utama & modal)
         // ============================================================
-        async function login() {
-            const nisn = nisnInput.value.trim();
+        async function login(fromModal = false) {
+            let nisn, errorEl, btn, inputEl;
+
+            if (fromModal) {
+                nisn = modalNisnInput.value.trim();
+                errorEl = modalLoginError;
+                btn = modalLoginBtn;
+                inputEl = modalNisnInput;
+            } else {
+                nisn = nisnInput.value.trim();
+                errorEl = loginError;
+                btn = loginBtn;
+                inputEl = nisnInput;
+            }
+
             if (!nisn) {
-                loginError.textContent = '❌ Silakan masukkan NISN';
-                loginError.classList.add('show');
+                errorEl.textContent = '❌ Silakan masukkan NISN';
+                errorEl.classList.add('show');
                 return;
             }
 
-            loginBtn.disabled = true;
-            loginBtn.textContent = '⏳ Memeriksa...';
-            loginError.classList.remove('show');
+            btn.disabled = true;
+            btn.textContent = '⏳ Memeriksa...';
+            errorEl.classList.remove('show');
 
             try {
                 const response = await fetch(SCRIPT_URL + `?action=getSiswa&nisn=${encodeURIComponent(nisn)}`);
                 const result = await response.json();
 
                 if (!result.success) {
-                    loginError.textContent = '❌ ' + (result.error || 'NISN tidak ditemukan');
-                    loginError.classList.add('show');
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = '🚀 Mulai Kuis';
+                    errorEl.textContent = '❌ ' + (result.error || 'NISN tidak ditemukan');
+                    errorEl.classList.add('show');
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Login';
                     return;
                 }
 
@@ -998,32 +1096,60 @@
                 });
 
                 if (filtered.length === 0) {
-                    loginError.textContent = `❌ Tidak ada soal untuk tingkat ${tingkatSiswa}`;
-                    loginError.classList.add('show');
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = '🚀 Mulai Kuis';
+                    errorEl.textContent = `❌ Tidak ada soal untuk tingkat ${tingkatSiswa}`;
+                    errorEl.classList.add('show');
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Login';
                     return;
                 }
 
-                // Ganti allQuestions dengan yang sudah difilter
+                // Jika login dari modal (setelah salah), jangan reset semua soal
+                // Cukup tutup modal login dan lanjutkan
+                if (fromModal) {
+                    // Tutup modal login
+                    closeModalLogin();
+
+                    // Reset flag wrong
+                    isWrongTriggered = false;
+
+                    // Buka kembali soal yang salah
+                    if (currentBoxIndex !== -1) {
+                        const box = activeBoxes[currentBoxIndex];
+                        if (box && box.status === 'wrong') {
+                            // Reset status box menjadi pending
+                            box.status = 'pending';
+                            renderGrid();
+                            setTimeout(() => openModal(currentBoxIndex), 300);
+                        }
+                    }
+
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Login';
+                    return;
+                }
+
+                // Login normal (dari awal)
                 allQuestions = filtered;
                 console.log(`✅ ${allQuestions.length} soal untuk tingkat ${tingkatSiswa}`);
 
-                // Sembunyikan login, tampilkan kuis
                 loginSection.classList.add('hidden');
                 quizContent.classList.remove('hidden');
 
-                // Mulai kuis
                 resetQuiz();
 
             } catch (error) {
                 console.error('Login error:', error);
-                loginError.textContent = '❌ Gagal terhubung ke server';
-                loginError.classList.add('show');
+                errorEl.textContent = '❌ Gagal terhubung ke server';
+                errorEl.classList.add('show');
             }
 
-            loginBtn.disabled = false;
-            loginBtn.textContent = '🚀 Mulai Kuis';
+            btn.disabled = false;
+            btn.textContent = '🚀 Login';
+        }
+
+        // Fungsi login dari modal
+        function modalLogin() {
+            login(true);
         }
 
         // ============================================================
@@ -1035,8 +1161,11 @@
                 loginSection.classList.remove('hidden');
                 quizContent.classList.add('hidden');
                 closeModal();
+                closeModalLogin();
                 nisnInput.value = '';
                 nisnInput.focus();
+                currentBoxIndex = -1;
+                isWrongTriggered = false;
             }
         }
 
@@ -1073,6 +1202,8 @@
             }
 
             closeModal();
+            closeModalLogin();
+            isWrongTriggered = false;
             updateStats();
             renderGrid();
         }
@@ -1095,8 +1226,8 @@
                             `;
                 } else if (status === 'wrong') {
                     div.innerHTML = `
-                                <span class="nomor" style="color:#dc3545;">${box.nomorAsli}</span>
-                                <span class="status-icon">❌</span>
+                                <span class="nomor" style="color:#ff9800;">${box.nomorAsli}</span>
+                                <span class="status-icon">🔄</span>
                             `;
                     div.onclick = () => openModal(index);
                 } else if (status === 'empty') {
@@ -1129,7 +1260,7 @@
         }
 
         // ============================================================
-        //  REPLACE QUESTION
+        //  REPLACE QUESTION (untuk correct)
         // ============================================================
         function replaceQuestion(index) {
             const newSoal = getNewQuestion();
@@ -1185,7 +1316,7 @@
         }
 
         // ============================================================
-        //  MODAL
+        //  MODAL SOAL
         // ============================================================
         function openModal(index) {
             const box = activeBoxes[index];
@@ -1196,6 +1327,7 @@
             isModalOpen = true;
             selectedOption = null;
             isAnswered = false;
+            isWrongTriggered = false;
 
             const q = box.soal;
             const total = allQuestions.length;
@@ -1204,7 +1336,6 @@
             modalTingkat.textContent = '📚 ' + (q['Tingkat'] || siswaData.tingkat);
             modalSoal.textContent = q.Soal;
 
-            // Bintang
             const bintangValue = q['Bintang'] || '';
             modalBintangValue.innerHTML = renderBintang(bintangValue);
 
@@ -1230,6 +1361,7 @@
 
             modalCekBtn.disabled = true;
             modalCekBtn.style.display = 'inline-block';
+            modalCekBtn.textContent = '✅ Cek Jawaban';
             modalNextBtn.style.display = 'none';
             modalCekBtn.onclick = () => cekJawabanModal();
 
@@ -1241,7 +1373,27 @@
             modalOverlay.classList.remove('show');
             document.body.style.overflow = '';
             isModalOpen = false;
-            currentBoxIndex = -1;
+            if (!isWrongTriggered) {
+                // Jika tidak triggered karena salah, reset index
+                currentBoxIndex = -1;
+            }
+        }
+
+        // ============================================================
+        //  MODAL LOGIN (popup)
+        // ============================================================
+        function openModalLogin() {
+            modalLoginOverlay.classList.add('show');
+            modalNisnInput.value = '';
+            modalLoginError.classList.remove('show');
+            modalLoginBtn.disabled = false;
+            modalLoginBtn.textContent = '🚀 Login';
+            setTimeout(() => modalNisnInput.focus(), 100);
+        }
+
+        function closeModalLogin() {
+            modalLoginOverlay.classList.remove('show');
+            modalLoginError.classList.remove('show');
         }
 
         // ============================================================
@@ -1290,7 +1442,6 @@
                 completed++;
                 box.status = 'correct';
 
-                // Tambah bintang
                 const bintangSoal = parseInt(q['Bintang']) || 0;
                 updateBintangKeSheet(bintangSoal);
 
@@ -1318,17 +1469,33 @@
                 };
 
             } else {
+                // ========== JAWABAN SALAH ==========
+                // Tandai box sebagai wrong
                 box.status = 'wrong';
-                modalFeedback.textContent = `❌ Salah! Jawaban yang benar: ${correct}`;
+                isWrongTriggered = true;
+
+                // Jangan tampilkan feedback jawaban benar
+                modalFeedback.textContent = '❌ Jawaban salah! Silakan login dengan siswa lain.';
                 modalFeedback.className = 'feedback salah';
 
-                modalCekBtn.textContent = '🔄 Coba Lagi';
-                modalCekBtn.disabled = false;
-                modalCekBtn.onclick = () => {
+                // Sembunyikan tombol cek dan next
+                modalCekBtn.style.display = 'none';
+                modalNextBtn.style.display = 'none';
+
+                // Tutup modal soal setelah 1 detik, lalu buka modal login
+                setTimeout(() => {
                     closeModal();
-                    renderGrid();
-                    setTimeout(() => openModal(index), 300);
-                };
+                    // Buka modal login setelah modal soal tertutup
+                    setTimeout(() => {
+                        openModalLogin();
+                    }, 300);
+                }, 1200);
+
+                // Update tampilan
+                isAnswered = true;
+                updateStats();
+                renderGrid();
+                return;
             }
 
             isAnswered = true;
@@ -1371,15 +1538,29 @@
         //  EVENT LISTENERS
         // ============================================================
         nisnInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') login();
+            if (e.key === 'Enter') login(false);
+        });
+
+        modalNisnInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') modalLogin();
         });
 
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) closeModal();
         });
 
+        modalLoginOverlay.addEventListener('click', (e) => {
+            if (e.target === modalLoginOverlay) closeModalLogin();
+        });
+
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && isModalOpen) closeModal();
+            if (e.key === 'Escape') {
+                if (modalLoginOverlay.classList.contains('show')) {
+                    closeModalLogin();
+                } else if (isModalOpen) {
+                    closeModal();
+                }
+            }
         });
 
         // ============================================================
@@ -1387,9 +1568,11 @@
         // ============================================================
         window.loadData = loadData;
         window.login = login;
+        window.modalLogin = modalLogin;
         window.logout = logout;
         window.resetQuiz = resetQuiz;
         window.closeModal = closeModal;
+        window.closeModalLogin = closeModalLogin;
         window.openModal = openModal;
 
         // ============================================================
