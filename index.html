@@ -713,6 +713,43 @@
         }
 
         /* ========================================
+           MODAL SALAH (popup untuk jawaban salah)
+           ======================================== */
+        .modal-salah {
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .modal-salah .salah-icon {
+            font-size: 64px;
+            margin-bottom: 10px;
+        }
+
+        .modal-salah .salah-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ff9800;
+            margin-bottom: 10px;
+        }
+
+        .modal-salah .salah-message {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .modal-salah .salah-sub {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .modal-salah .countdown {
+            font-size: 14px;
+            color: #999;
+            margin-top: 15px;
+        }
+
+        /* ========================================
            LOADING & ERROR
            ======================================== */
         .loading {
@@ -1001,6 +1038,19 @@
         </div>
     </div>
 
+    <!-- ========================================
+    MODAL SALAH (popup untuk jawaban salah)
+    ======================================== -->
+    <div class="modal-overlay" id="modalSalahOverlay">
+        <div class="modal modal-salah">
+            <div class="salah-icon">❌</div>
+            <div class="salah-title">Jawaban Salah!</div>
+            <div class="salah-message">Maaf, jawaban Anda kurang tepat.</div>
+            <div class="salah-sub">Silakan login dengan siswa lain untuk mengerjakan ulang soal ini.</div>
+            <div class="countdown" id="salahCountdown">Menutup dalam <span id="salahCountdownNumber">3</span> detik...</div>
+        </div>
+    </div>
+
     <script>
         // ============================================================
         //  KONFIGURASI
@@ -1008,7 +1058,8 @@
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycHGGdzzfUoTFEKz7QdIsL24N_DU5ZJVcfLvGFKpL9Z8fG8YBE074AxoUeVxLNAFmI/exec';
 
         const BOX_COUNT = 10;
-        const AUTO_LOGOUT_DELAY = 5; // detik
+        const AUTO_LOGOUT_DELAY = 5; // detik untuk jawaban benar
+        const SALAH_DELAY = 3; // detik untuk jawaban salah
 
         // ============================================================
         //  STATE
@@ -1019,13 +1070,14 @@
         let score = 0;
         let completed = 0;
 
-        let siswaData = null; // { nama, nisn, tingkat, bintang, rowIndex }
+        let siswaData = null;
         let isModalOpen = false;
         let currentBoxIndex = -1;
         let selectedOption = null;
         let isAnswered = false;
         let isWrongTriggered = false;
         let logoutTimer = null;
+        let salahTimer = null;
 
         // ============================================================
         //  DOM
@@ -1074,6 +1126,10 @@
         const selamatBintang = document.getElementById('selamatBintang');
         const selamatJumlahBintang = document.getElementById('selamatJumlahBintang');
         const countdownNumber = document.getElementById('countdownNumber');
+
+        // Modal Salah
+        const modalSalahOverlay = document.getElementById('modalSalahOverlay');
+        const salahCountdownNumber = document.getElementById('salahCountdownNumber');
 
         // ============================================================
         //  LOAD DATA
@@ -1217,6 +1273,10 @@
             if (logoutTimer) {
                 clearTimeout(logoutTimer);
                 logoutTimer = null;
+            }
+            if (salahTimer) {
+                clearTimeout(salahTimer);
+                salahTimer = null;
             }
             closeAllModals();
             siswaData = null;
@@ -1389,6 +1449,10 @@
                 clearTimeout(logoutTimer);
                 logoutTimer = null;
             }
+            if (salahTimer) {
+                clearTimeout(salahTimer);
+                salahTimer = null;
+            }
 
             currentBoxIndex = index;
             isModalOpen = true;
@@ -1463,7 +1527,7 @@
         }
 
         // ============================================================
-        //  MODAL SELAMAT
+        //  MODAL SELAMAT (jawaban benar)
         // ============================================================
         function openModalSelamat(bintangCount) {
             const bintangStr = '⭐'.repeat(Math.min(bintangCount, 5));
@@ -1472,7 +1536,6 @@
 
             modalSelamatOverlay.classList.add('show');
 
-            // Mulai countdown
             let count = AUTO_LOGOUT_DELAY;
             countdownNumber.textContent = count;
 
@@ -1487,7 +1550,6 @@
                 if (count <= 0) {
                     clearInterval(logoutTimer);
                     logoutTimer = null;
-                    // Tutup modal selamat dan logout
                     closeModalSelamat();
                     logout();
                 }
@@ -1503,15 +1565,57 @@
         }
 
         // ============================================================
+        //  MODAL SALAH (jawaban salah)
+        // ============================================================
+        function openModalSalah() {
+            modalSalahOverlay.classList.add('show');
+
+            let count = SALAH_DELAY;
+            salahCountdownNumber.textContent = count;
+
+            if (salahTimer) {
+                clearTimeout(salahTimer);
+                salahTimer = null;
+            }
+
+            salahTimer = setInterval(() => {
+                count--;
+                salahCountdownNumber.textContent = count;
+                if (count <= 0) {
+                    clearInterval(salahTimer);
+                    salahTimer = null;
+                    closeModalSalah();
+                    // Buka modal login setelah modal salah tertutup
+                    setTimeout(() => {
+                        openModalLogin();
+                    }, 300);
+                }
+            }, 1000);
+        }
+
+        function closeModalSalah() {
+            modalSalahOverlay.classList.remove('show');
+            if (salahTimer) {
+                clearInterval(salahTimer);
+                salahTimer = null;
+            }
+        }
+
+        // ============================================================
         //  CLOSE ALL MODALS
         // ============================================================
         function closeAllModals() {
             closeModal();
             closeModalLogin();
             closeModalSelamat();
+            closeModalSalah();
             if (logoutTimer) {
                 clearInterval(logoutTimer);
                 logoutTimer = null;
+            }
+            if (salahTimer) {
+                clearInterval(salahTimer);
+                salahTimer = null;
             }
         }
 
@@ -1564,42 +1668,37 @@
                 completed++;
                 box.status = 'correct';
 
-                // Update bintang ke sheet
                 updateBintangKeSheet(bintangSoal);
 
-                // Tutup modal soal
                 closeModal();
 
-                // Tampilkan modal selamat
                 setTimeout(() => {
                     openModalSelamat(bintangSoal);
                 }, 300);
 
-                // Update grid setelah delay
                 setTimeout(() => {
                     replaceQuestion(index);
                     renderGrid();
                 }, 500);
 
             } else {
-                // Jawaban salah
+                // ========== JAWABAN SALAH ==========
                 box.status = 'wrong';
                 isWrongTriggered = true;
+                isAnswered = true;
 
-                modalFeedback.textContent = '❌ Jawaban salah! Silakan login dengan siswa lain.';
-                modalFeedback.className = 'feedback salah';
-
+                // Sembunyikan tombol di modal soal
                 modalCekBtn.style.display = 'none';
                 modalNextBtn.style.display = 'none';
 
-                setTimeout(() => {
-                    closeModal();
-                    setTimeout(() => {
-                        openModalLogin();
-                    }, 300);
-                }, 1200);
+                // Tutup modal soal
+                closeModal();
 
-                isAnswered = true;
+                // Tampilkan modal salah setelah delay
+                setTimeout(() => {
+                    openModalSalah();
+                }, 300);
+
                 updateStats();
                 renderGrid();
                 return;
@@ -1662,10 +1761,14 @@
 
         modalSelamatOverlay.addEventListener('click', (e) => {
             if (e.target === modalSelamatOverlay) {
-                // Jangan izinkan close manual, biarkan countdown
-                // Tapi kalau user nekat, kita biarkan tapi tetap logout
                 closeModalSelamat();
                 logout();
+            }
+        });
+
+        modalSalahOverlay.addEventListener('click', (e) => {
+            if (e.target === modalSalahOverlay) {
+                // Jangan izinkan close manual
             }
         });
 
@@ -1674,7 +1777,9 @@
                 if (modalLoginOverlay.classList.contains('show')) {
                     closeModalLogin();
                 } else if (modalSelamatOverlay.classList.contains('show')) {
-                    // Jangan izinkan escape untuk modal selamat
+                    // Jangan izinkan escape
+                } else if (modalSalahOverlay.classList.contains('show')) {
+                    // Jangan izinkan escape
                 } else if (isModalOpen) {
                     closeModal();
                 }
@@ -1692,6 +1797,7 @@
         window.closeModal = closeModal;
         window.closeModalLogin = closeModalLogin;
         window.closeModalSelamat = closeModalSelamat;
+        window.closeModalSalah = closeModalSalah;
         window.openModal = openModal;
 
         // ============================================================
