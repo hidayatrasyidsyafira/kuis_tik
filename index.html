@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kuis Berdasarkan Tingkatan</title>
+    <title>Kuis - Login per Soal</title>
     <style>
         /* ========================================
            RESET & BASE
@@ -58,173 +58,6 @@
         .header p {
             color: #666;
             font-size: 14px;
-        }
-
-        /* ========================================
-           LOGIN NISN
-           ======================================== */
-        #loginSection {
-            padding: 20px 0;
-        }
-
-        #loginSection .login-box {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 400px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        #loginSection .login-box h2 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        #loginSection .login-box p {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-
-        #loginSection .login-box input {
-            width: 100%;
-            padding: 14px 18px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 18px;
-            text-align: center;
-            letter-spacing: 2px;
-            transition: border-color 0.3s ease;
-        }
-
-        #loginSection .login-box input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        #loginSection .login-box .btn {
-            margin-top: 15px;
-            width: 100%;
-            padding: 14px;
-            font-size: 18px;
-        }
-
-        .btn {
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5a67d8;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #218838;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
-        }
-
-        .btn-warning {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .btn-warning:hover {
-            background: #e0a800;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
-        }
-
-        #loginError {
-            color: #dc3545;
-            font-size: 14px;
-            margin-top: 10px;
-            display: none;
-        }
-
-        #loginError.show {
-            display: block;
-        }
-
-        /* ========================================
-           SISWA INFO
-           ======================================== */
-        .siswa-info {
-            background: #e8f4fd;
-            border-radius: 10px;
-            padding: 12px 20px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .siswa-info .nama {
-            font-weight: 700;
-            color: #333;
-            font-size: 18px;
-        }
-
-        .siswa-info .nisn-label {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .siswa-info .tingkat-label {
-            background: #667eea;
-            color: white;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .siswa-info .bintang-total {
-            font-size: 20px;
-            font-weight: 700;
-            color: #ffc107;
-        }
-
-        .siswa-info .btn-logout {
-            background: none;
-            border: none;
-            color: #dc3545;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .siswa-info .btn-logout:hover {
-            text-decoration: underline;
         }
 
         /* ========================================
@@ -304,6 +137,18 @@
             margin-top: 5px;
         }
 
+        .soal-box .tingkat-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #667eea;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
         .soal-box.pending {
             border-color: #e0e0e0;
             background: white;
@@ -313,17 +158,12 @@
             color: #667eea;
         }
 
+        /* State: Sudah dijawab benar - HILANG (display none) */
         .soal-box.correct {
-            border-color: #28a745;
-            background: #d4edda;
-            cursor: default;
-            opacity: 0.6;
+            display: none;
         }
 
-        .soal-box.correct .nomor {
-            color: #28a745;
-        }
-
+        /* State: Salah - tetap tampil dengan warna merah */
         .soal-box.wrong {
             border-color: #dc3545;
             background: #f8d7da;
@@ -335,6 +175,7 @@
             color: #dc3545;
         }
 
+        /* State: Habis (tidak ada soal tersisa) */
         .soal-box.empty {
             border-color: #e0e0e0;
             background: #f8f9fa;
@@ -360,7 +201,7 @@
         }
 
         /* ========================================
-           MODAL
+           MODAL SOAL + LOGIN
            ======================================== */
         .modal-overlay {
             display: none;
@@ -421,6 +262,8 @@
             margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 2px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .modal-header .nomor-soal {
@@ -453,6 +296,111 @@
             transform: rotate(90deg);
         }
 
+        /* ===== LOGIN SECTION DI DALAM MODAL ===== */
+        .login-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .login-section .login-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .login-section .login-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .login-section select {
+            padding: 10px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            min-width: 180px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .login-section select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-section .btn-login-soal {
+            padding: 10px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .login-section .btn-login-soal:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .login-section .login-error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .login-section .login-error.show {
+            display: block;
+        }
+
+        /* ===== SISWA AKTIF ===== */
+        .siswa-aktif {
+            background: #d4edda;
+            border-radius: 10px;
+            padding: 10px 16px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .siswa-aktif .nama {
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .siswa-aktif .bintang {
+            color: #ffc107;
+            font-weight: 700;
+        }
+
+        .siswa-aktif .btn-ganti {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .siswa-aktif .btn-ganti:hover {
+            text-decoration: underline;
+        }
+
+        /* ========================================
+           MODAL SOAL
+           ======================================== */
         .modal .soal-text {
             font-size: 22px;
             font-weight: 600;
@@ -560,6 +508,9 @@
             color: #dc3545;
         }
 
+        /* ========================================
+           TOMBOL
+           ======================================== */
         .modal .btn-group-modal {
             display: flex;
             gap: 12px;
@@ -593,16 +544,6 @@
             transform: none;
         }
 
-        .modal .btn-next {
-            background: #667eea;
-            color: white;
-        }
-
-        .modal .btn-next:hover {
-            background: #5a67d8;
-            transform: scale(1.03);
-        }
-
         .modal .btn-tutup {
             background: #6c757d;
             color: white;
@@ -610,6 +551,46 @@
 
         .modal .btn-tutup:hover {
             background: #5a6268;
+        }
+
+        .btn-group-bottom {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 10px 25px;
+            font-size: 15px;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
         /* ========================================
@@ -658,13 +639,6 @@
         }
 
         /* ========================================
-           HIDDEN
-           ======================================== */
-        .hidden {
-            display: none !important;
-        }
-
-        /* ========================================
            RESPONSIVE
            ======================================== */
         @media (max-width: 700px) {
@@ -704,13 +678,13 @@
                 font-size: 15px;
             }
 
-            .modal .bintang-section .bintang-value {
-                font-size: 22px;
+            .login-section .login-row {
+                flex-direction: column;
+                align-items: center;
             }
 
-            .siswa-info {
-                flex-direction: column;
-                text-align: center;
+            .login-section select {
+                min-width: 100%;
             }
         }
 
@@ -743,10 +717,6 @@
             .modal .soal-text {
                 font-size: 16px;
             }
-
-            .modal .bintang-section .bintang-value {
-                font-size: 18px;
-            }
         }
     </style>
 </head>
@@ -754,53 +724,25 @@
     <div class="container">
         <!-- HEADER -->
         <div class="header">
-            <h1>📚 Kuis Berdasarkan Tingkatan</h1>
-            <p>Masukkan NISN untuk memulai kuis sesuai tingkat Anda ⭐</p>
+            <h1>📚 Kuis - Login per Soal</h1>
+            <p>Klik kotak soal, login, dan jawab! ✅ = soal hilang, ❌ = ganti siswa</p>
         </div>
 
-        <!-- ========================================
-        LOADING
-        ======================================== -->
+        <!-- LOADING -->
         <div id="loading" class="loading show">
             <div class="spinner"></div>
-            <p>Memuat data...</p>
+            <p>Memuat soal...</p>
         </div>
 
-        <!-- ========================================
-        ERROR
-        ======================================== -->
+        <!-- ERROR -->
         <div id="errorMessage" class="error-message">
             <strong>⚠️ Error:</strong> <span id="errorText">Gagal memuat data</span>
             <br>
             <button class="btn btn-primary" onclick="loadData()" style="margin-top:10px;">🔄 Coba Lagi</button>
         </div>
 
-        <!-- ========================================
-        LOGIN NISN
-        ======================================== -->
-        <div id="loginSection">
-            <div class="login-box">
-                <h2>🔑 Masukkan NISN</h2>
-                <p>Masukkan NISN Anda untuk memulai kuis</p>
-                <input type="text" id="nisnInput" placeholder="Masukkan NISN" maxlength="20" autocomplete="off">
-                <button class="btn btn-primary" id="loginBtn" onclick="login()">🚀 Mulai Kuis</button>
-                <div id="loginError">❌ NISN tidak ditemukan. Silakan hubungi admin.</div>
-            </div>
-        </div>
-
-        <!-- ========================================
-        QUIZ CONTENT
-        ======================================== -->
-        <div id="quizContent" class="hidden">
-            <!-- SISWA INFO -->
-            <div class="siswa-info" id="siswaInfo">
-                <span class="nama" id="siswaNama">-</span>
-                <span class="nisn-label">NISN: <strong id="siswaNisn">-</strong></span>
-                <span class="tingkat-label" id="siswaTingkat">X</span>
-                <span class="bintang-total">⭐ <span id="siswaBintang">0</span></span>
-                <button class="btn-logout" onclick="logout()">🚪 Keluar</button>
-            </div>
-
+        <!-- QUIZ -->
+        <div id="quizContent" style="display: none;">
             <!-- STATS -->
             <div class="stats">
                 <div>
@@ -812,10 +754,6 @@
                     <div class="label">✅ Selesai</div>
                 </div>
                 <div>
-                    <div class="number" id="score">0</div>
-                    <div class="label">⭐ Skor</div>
-                </div>
-                <div>
                     <div class="number" id="tersisa">0</div>
                     <div class="label">📦 Tersisa</div>
                 </div>
@@ -825,14 +763,14 @@
             <div class="grid-container" id="gridContainer"></div>
 
             <!-- TOMBOL -->
-            <div class="btn-group-bottom" style="display:flex; gap:12px; justify-content:center; margin-top:20px; flex-wrap:wrap;">
-                <button class="btn btn-danger" onclick="resetQuiz()">🔄 Reset Kuis</button>
+            <div class="btn-group-bottom">
+                <button class="btn btn-danger" onclick="resetAll()">🔄 Reset Semua Soal</button>
             </div>
         </div>
     </div>
 
     <!-- ========================================
-    MODAL
+    MODAL SOAL + LOGIN
     ======================================== -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
@@ -842,6 +780,26 @@
                 <button class="close-btn" onclick="closeModal()">✕</button>
             </div>
 
+            <!-- LOGIN SECTION -->
+            <div class="login-section" id="loginSection">
+                <div class="login-title">🔑 Pilih Siswa untuk Menjawab</div>
+                <div class="login-row">
+                    <select id="siswaSelect">
+                        <option value="">-- Pilih Siswa --</option>
+                    </select>
+                    <button class="btn-login-soal" id="loginSoalBtn" onclick="loginSiswa()">🚀 Login</button>
+                </div>
+                <div class="login-error" id="loginError">❌ Silakan pilih siswa terlebih dahulu</div>
+            </div>
+
+            <!-- SISWA AKTIF -->
+            <div class="siswa-aktif" id="siswaAktif" style="display: none;">
+                <span>👤 <span class="nama" id="aktifNama">-</span> (📚 <span id="aktifTingkat">-</span>)</span>
+                <span>⭐ <span class="bintang" id="aktifBintang">0</span></span>
+                <button class="btn-ganti" onclick="gantiSiswa()">🔄 Ganti Siswa</button>
+            </div>
+
+            <!-- SOAL -->
             <div class="soal-text" id="modalSoal">Memuat soal...</div>
 
             <div class="bintang-section">
@@ -855,7 +813,6 @@
 
             <div class="btn-group-modal">
                 <button class="btn btn-cek" id="modalCekBtn" disabled>✅ Cek Jawaban</button>
-                <button class="btn btn-next" id="modalNextBtn" style="display:none;">➡️ Soal Berikutnya</button>
                 <button class="btn btn-tutup" onclick="closeModal()">✕ Tutup</button>
             </div>
         </div>
@@ -865,48 +822,34 @@
         // ============================================================
         //  KONFIGURASI
         // ============================================================
-        // 🔧 GANTI DENGAN URL DEPLOYMENT ANDA
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycHGGdzzfUoTFEKz7QdIsL24N_DU5ZJVcfLvGFKpL9Z8fG8YBE074AxoUeVxLNAFmI/exec';
-
-        const BOX_COUNT = 10;
 
         // ============================================================
         //  STATE
         // ============================================================
         let allQuestions = [];
-        let queueQuestions = [];
-        let activeBoxes = [];
-        let score = 0;
-        let completed = 0;
+        let activeQuestions = [];
+        let siswaList = [];
+        let siswaAktif = null; // { nama, nisn, tingkat, bintang }
 
-        let siswaData = null; // { nama, nisn, tingkat, bintang, rowIndex }
         let isModalOpen = false;
-        let currentBoxIndex = -1;
+        let currentQuestionId = null;
+        let currentQuestionData = null;
         let selectedOption = null;
         let isAnswered = false;
+        let isLoggedIn = false;
 
         // ============================================================
         //  DOM
         // ============================================================
         const loading = document.getElementById('loading');
-        const loginSection = document.getElementById('loginSection');
         const quizContent = document.getElementById('quizContent');
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
 
-        const nisnInput = document.getElementById('nisnInput');
-        const loginBtn = document.getElementById('loginBtn');
-        const loginError = document.getElementById('loginError');
-
-        const siswaNama = document.getElementById('siswaNama');
-        const siswaNisn = document.getElementById('siswaNisn');
-        const siswaTingkat = document.getElementById('siswaTingkat');
-        const siswaBintang = document.getElementById('siswaBintang');
-
         const gridContainer = document.getElementById('gridContainer');
         const totalSoalEl = document.getElementById('totalSoal');
         const selesaiEl = document.getElementById('selesai');
-        const scoreEl = document.getElementById('score');
         const tersisaEl = document.getElementById('tersisa');
 
         // Modal
@@ -918,7 +861,16 @@
         const modalOptions = document.getElementById('modalOptions');
         const modalFeedback = document.getElementById('modalFeedback');
         const modalCekBtn = document.getElementById('modalCekBtn');
-        const modalNextBtn = document.getElementById('modalNextBtn');
+
+        const loginSection = document.getElementById('loginSection');
+        const siswaSelect = document.getElementById('siswaSelect');
+        const loginSoalBtn = document.getElementById('loginSoalBtn');
+        const loginError = document.getElementById('loginError');
+
+        const siswaAktifDiv = document.getElementById('siswaAktif');
+        const aktifNama = document.getElementById('aktifNama');
+        const aktifTingkat = document.getElementById('aktifTingkat');
+        const aktifBintang = document.getElementById('aktifBintang');
 
         // ============================================================
         //  LOAD DATA
@@ -926,25 +878,34 @@
         async function loadData() {
             try {
                 loading.classList.add('show');
-                loginSection.classList.add('hidden');
-                quizContent.classList.add('hidden');
+                quizContent.style.display = 'none';
                 errorMessage.classList.remove('show');
 
-                // Hanya ambil struktur soal, nanti difilter berdasarkan tingkat siswa
-                const response = await fetch(SCRIPT_URL + '?action=getSoal');
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                // 1. Ambil soal
+                const soalRes = await fetch(SCRIPT_URL + '?action=getSoal');
+                const soalResult = await soalRes.json();
 
-                const result = await response.json();
-
-                if (!result.success || !result.data) {
-                    throw new Error(result?.error || 'Data kosong');
+                if (!soalResult.success || !soalResult.data) {
+                    throw new Error(soalResult?.error || 'Gagal memuat soal');
                 }
 
-                allQuestions = result.data;
+                allQuestions = soalResult.data;
+                activeQuestions = [...allQuestions];
                 console.log(`✅ ${allQuestions.length} soal dimuat`);
 
+                // 2. Ambil daftar siswa
+                const siswaRes = await fetch(SCRIPT_URL + '?action=getAllSiswa');
+                const siswaResult = await siswaRes.json();
+
+                if (siswaResult.success && siswaResult.data) {
+                    siswaList = siswaResult.data;
+                    populateSiswaSelect();
+                    console.log(`✅ ${siswaList.length} siswa dimuat`);
+                }
+
                 loading.classList.remove('show');
-                loginSection.classList.remove('hidden');
+                quizContent.style.display = 'block';
+                renderGrid();
 
             } catch (error) {
                 console.error('Error:', error);
@@ -955,126 +916,16 @@
         }
 
         // ============================================================
-        //  LOGIN
+        //  POPULATE SISWA SELECT
         // ============================================================
-        async function login() {
-            const nisn = nisnInput.value.trim();
-            if (!nisn) {
-                loginError.textContent = '❌ Silakan masukkan NISN';
-                loginError.classList.add('show');
-                return;
-            }
-
-            loginBtn.disabled = true;
-            loginBtn.textContent = '⏳ Memeriksa...';
-            loginError.classList.remove('show');
-
-            try {
-                const response = await fetch(SCRIPT_URL + `?action=getSiswa&nisn=${encodeURIComponent(nisn)}`);
-                const result = await response.json();
-
-                if (!result.success) {
-                    loginError.textContent = '❌ ' + (result.error || 'NISN tidak ditemukan');
-                    loginError.classList.add('show');
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = '🚀 Mulai Kuis';
-                    return;
-                }
-
-                siswaData = result.data;
-                siswaData.rowIndex = result.rowIndex;
-
-                // Update info siswa
-                siswaNama.textContent = siswaData.nama;
-                siswaNisn.textContent = siswaData.nisn;
-                siswaTingkat.textContent = '📚 ' + siswaData.tingkat;
-                siswaBintang.textContent = siswaData.bintang;
-
-                // Filter soal berdasarkan tingkat siswa
-                const tingkatSiswa = siswaData.tingkat.trim();
-                const filtered = allQuestions.filter(q => {
-                    const qTingkat = q['Tingkat'] ? q['Tingkat'].toString().trim() : '';
-                    return qTingkat === tingkatSiswa;
-                });
-
-                if (filtered.length === 0) {
-                    loginError.textContent = `❌ Tidak ada soal untuk tingkat ${tingkatSiswa}`;
-                    loginError.classList.add('show');
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = '🚀 Mulai Kuis';
-                    return;
-                }
-
-                // Ganti allQuestions dengan yang sudah difilter
-                allQuestions = filtered;
-                console.log(`✅ ${allQuestions.length} soal untuk tingkat ${tingkatSiswa}`);
-
-                // Sembunyikan login, tampilkan kuis
-                loginSection.classList.add('hidden');
-                quizContent.classList.remove('hidden');
-
-                // Mulai kuis
-                resetQuiz();
-
-            } catch (error) {
-                console.error('Login error:', error);
-                loginError.textContent = '❌ Gagal terhubung ke server';
-                loginError.classList.add('show');
-            }
-
-            loginBtn.disabled = false;
-            loginBtn.textContent = '🚀 Mulai Kuis';
-        }
-
-        // ============================================================
-        //  LOGOUT
-        // ============================================================
-        function logout() {
-            if (confirm('Yakin ingin keluar? Progress kuis akan direset.')) {
-                siswaData = null;
-                loginSection.classList.remove('hidden');
-                quizContent.classList.add('hidden');
-                closeModal();
-                nisnInput.value = '';
-                nisnInput.focus();
-            }
-        }
-
-        // ============================================================
-        //  RESET QUIZ
-        // ============================================================
-        function resetQuiz() {
-            const shuffled = [...allQuestions];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-
-            queueQuestions = shuffled;
-            activeBoxes = [];
-            score = 0;
-            completed = 0;
-
-            for (let i = 0; i < BOX_COUNT; i++) {
-                if (queueQuestions.length > 0) {
-                    const soal = queueQuestions.shift();
-                    activeBoxes.push({
-                        soal: soal,
-                        status: 'pending',
-                        nomorAsli: i + 1
-                    });
-                } else {
-                    activeBoxes.push({
-                        soal: null,
-                        status: 'empty',
-                        nomorAsli: i + 1
-                    });
-                }
-            }
-
-            closeModal();
-            updateStats();
-            renderGrid();
+        function populateSiswaSelect() {
+            siswaSelect.innerHTML = '<option value="">-- Pilih Siswa --</option>';
+            siswaList.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.nisn;
+                opt.textContent = `${s.nama} (${s.nisn}) - ${s.tingkat}`;
+                siswaSelect.appendChild(opt);
+            });
         }
 
         // ============================================================
@@ -1083,35 +934,25 @@
         function renderGrid() {
             gridContainer.innerHTML = '';
 
-            activeBoxes.forEach((box, index) => {
+            if (activeQuestions.length === 0) {
+                gridContainer.innerHTML = `
+                            <div style="grid-column:1/-1; text-align:center; padding:40px; color:#28a745; font-size:20px; font-weight:700;">
+                                🎉 Semua soal telah selesai!
+                            </div>
+                        `;
+                updateStats();
+                return;
+            }
+
+            activeQuestions.forEach((q, index) => {
                 const div = document.createElement('div');
-                const status = box.status;
-                div.className = `soal-box ${status}`;
-
-                if (status === 'correct') {
-                    div.innerHTML = `
-                                <span class="nomor" style="color:#28a745;">${box.nomorAsli}</span>
-                                <span class="status-icon">✅</span>
-                            `;
-                } else if (status === 'wrong') {
-                    div.innerHTML = `
-                                <span class="nomor" style="color:#dc3545;">${box.nomorAsli}</span>
-                                <span class="status-icon">❌</span>
-                            `;
-                    div.onclick = () => openModal(index);
-                } else if (status === 'empty') {
-                    div.innerHTML = `
-                                <span class="nomor" style="color:#999;">✕</span>
-                                <span class="status-icon">📭</span>
-                            `;
-                } else if (status === 'pending') {
-                    div.innerHTML = `
-                                <span class="nomor">${box.nomorAsli}</span>
-                                <span class="status-icon">📦</span>
-                            `;
-                    div.onclick = () => openModal(index);
-                }
-
+                div.className = 'soal-box pending';
+                div.innerHTML = `
+                            <span class="nomor">${index + 1}</span>
+                            <span class="status-icon">📦</span>
+                            <span class="tingkat-badge">${q.Tingkat || 'X'}</span>
+                        `;
+                div.onclick = () => openModal(q.id || q.No);
                 gridContainer.appendChild(div);
             });
 
@@ -1119,28 +960,84 @@
         }
 
         // ============================================================
-        //  GET NEW QUESTION
+        //  UPDATE STATS
         // ============================================================
-        function getNewQuestion() {
-            if (queueQuestions.length > 0) {
-                return queueQuestions.shift();
-            }
-            return null;
+        function updateStats() {
+            const total = allQuestions.length || 0;
+            const selesai = total - activeQuestions.length;
+            totalSoalEl.textContent = total;
+            selesaiEl.textContent = selesai;
+            tersisaEl.textContent = activeQuestions.length;
         }
 
         // ============================================================
-        //  REPLACE QUESTION
+        //  MODAL - OPEN
         // ============================================================
-        function replaceQuestion(index) {
-            const newSoal = getNewQuestion();
-            if (newSoal) {
-                activeBoxes[index].soal = newSoal;
-                activeBoxes[index].status = 'pending';
-            } else {
-                activeBoxes[index].soal = null;
-                activeBoxes[index].status = 'empty';
+        async function openModal(questionId) {
+            if (isModalOpen) return;
+
+            // Cari soal
+            const q = activeQuestions.find(q => (q.id || q.No) === questionId);
+            if (!q) {
+                alert('Soal sudah dijawab benar!');
+                return;
             }
-            renderGrid();
+
+            currentQuestionId = questionId;
+            currentQuestionData = q;
+
+            // Reset state
+            isLoggedIn = false;
+            isAnswered = false;
+            selectedOption = null;
+            siswaAktif = null;
+
+            // Tampilkan login, sembunyikan siswa aktif
+            loginSection.style.display = 'block';
+            siswaAktifDiv.style.display = 'none';
+            loginError.classList.remove('show');
+            loginSoalBtn.disabled = false;
+            siswaSelect.disabled = false;
+
+            // Tampilkan soal (tapi disable interaksi sampai login)
+            modalNomor.textContent = `Soal ${activeQuestions.indexOf(q) + 1} dari ${activeQuestions.length}`;
+            modalTingkat.textContent = '📚 ' + (q.Tingkat || 'X');
+            modalSoal.textContent = q.Soal;
+
+            const bintangValue = q['Bintang'] || '';
+            modalBintangValue.innerHTML = renderBintang(bintangValue);
+
+            modalFeedback.textContent = '';
+            modalFeedback.className = 'feedback';
+
+            // Buat opsi (disable dulu)
+            const options = [
+                { label: 'A', value: q['Pilihan A'] },
+                { label: 'B', value: q['Pilihan B'] },
+                { label: 'C', value: q['Pilihan C'] },
+                { label: 'D', value: q['Pilihan D'] }
+            ];
+
+            modalOptions.innerHTML = '';
+            options.forEach((opt) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = `${opt.label}. ${opt.value || '-'}`;
+                btn.dataset.value = opt.label;
+                btn.disabled = true;
+                btn.onclick = () => selectOptionModal(btn, opt.label);
+                modalOptions.appendChild(btn);
+            });
+
+            modalCekBtn.disabled = true;
+            modalCekBtn.onclick = () => cekJawabanModal();
+
+            isModalOpen = true;
+            modalOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+
+            // Reset select
+            siswaSelect.value = '';
         }
 
         // ============================================================
@@ -1157,98 +1054,101 @@
         }
 
         // ============================================================
-        //  UPDATE BINTANG KE SHEET
+        //  LOGIN SISWA (di dalam modal)
         // ============================================================
-        async function updateBintangKeSheet(bintangDitambah) {
-            if (!siswaData) return;
+        async function loginSiswa() {
+            const nisn = siswaSelect.value;
+            if (!nisn) {
+                loginError.textContent = '❌ Silakan pilih siswa terlebih dahulu';
+                loginError.classList.add('show');
+                return;
+            }
+
+            loginError.classList.remove('show');
+            loginSoalBtn.disabled = true;
+            loginSoalBtn.textContent = '⏳ Memeriksa...';
 
             try {
-                const params = new URLSearchParams({
-                    action: 'updateBintang',
-                    nisn: siswaData.nisn,
-                    bintang: bintangDitambah
-                });
-
-                const response = await fetch(SCRIPT_URL + '?' + params.toString());
+                const response = await fetch(SCRIPT_URL + `?action=getSiswa&nisn=${encodeURIComponent(nisn)}`);
                 const result = await response.json();
 
-                if (result.success) {
-                    siswaBintang.textContent = result.bintangTotal;
-                    siswaData.bintang = result.bintangTotal;
-                    console.log('✅ Bintang diupdate:', result);
-                } else {
-                    console.warn('⚠️ Gagal update bintang:', result.error);
+                if (!result.success) {
+                    loginError.textContent = '❌ ' + (result.error || 'Siswa tidak ditemukan');
+                    loginError.classList.add('show');
+                    loginSoalBtn.disabled = false;
+                    loginSoalBtn.textContent = '🚀 Login';
+                    return;
                 }
+
+                siswaAktif = result.data;
+
+                // Update tampilan siswa aktif
+                aktifNama.textContent = siswaAktif.nama;
+                aktifTingkat.textContent = siswaAktif.tingkat;
+                aktifBintang.textContent = siswaAktif.bintang;
+
+                loginSection.style.display = 'none';
+                siswaAktifDiv.style.display = 'flex';
+
+                // Enable interaksi soal
+                isLoggedIn = true;
+                enableSoalInteraction();
+
+                loginSoalBtn.disabled = false;
+                loginSoalBtn.textContent = '🚀 Login';
+
             } catch (error) {
-                console.error('Error update bintang:', error);
+                console.error('Login error:', error);
+                loginError.textContent = '❌ Gagal terhubung ke server';
+                loginError.classList.add('show');
+                loginSoalBtn.disabled = false;
+                loginSoalBtn.textContent = '🚀 Login';
             }
         }
 
         // ============================================================
-        //  MODAL
+        //  GANTI SISWA
         // ============================================================
-        function openModal(index) {
-            const box = activeBoxes[index];
-            if (!box || box.status === 'correct' || box.status === 'empty') return;
-            if (isModalOpen) return;
-
-            currentBoxIndex = index;
-            isModalOpen = true;
-            selectedOption = null;
+        function gantiSiswa() {
+            isLoggedIn = false;
             isAnswered = false;
+            selectedOption = null;
 
-            const q = box.soal;
-            const total = allQuestions.length;
-            const done = completed;
-            modalNomor.textContent = `Soal ${box.nomorAsli} (${done + 1}/${total})`;
-            modalTingkat.textContent = '📚 ' + (q['Tingkat'] || siswaData.tingkat);
-            modalSoal.textContent = q.Soal;
+            loginSection.style.display = 'block';
+            siswaAktifDiv.style.display = 'none';
+            siswaSelect.value = '';
 
-            // Bintang
-            const bintangValue = q['Bintang'] || '';
-            modalBintangValue.innerHTML = renderBintang(bintangValue);
+            // Disable interaksi soal lagi
+            disableSoalInteraction();
 
             modalFeedback.textContent = '';
             modalFeedback.className = 'feedback';
-
-            const options = [
-                { label: 'A', value: q['Pilihan A'] },
-                { label: 'B', value: q['Pilihan B'] },
-                { label: 'C', value: q['Pilihan C'] },
-                { label: 'D', value: q['Pilihan D'] }
-            ];
-
-            modalOptions.innerHTML = '';
-            options.forEach((opt) => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.textContent = `${opt.label}. ${opt.value || '-'}`;
-                btn.dataset.value = opt.label;
-                btn.onclick = () => selectOptionModal(btn, opt.label);
-                modalOptions.appendChild(btn);
-            });
-
             modalCekBtn.disabled = true;
-            modalCekBtn.style.display = 'inline-block';
-            modalNextBtn.style.display = 'none';
-            modalCekBtn.onclick = () => cekJawabanModal();
-
-            modalOverlay.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            modalOverlay.classList.remove('show');
-            document.body.style.overflow = '';
-            isModalOpen = false;
-            currentBoxIndex = -1;
         }
 
         // ============================================================
-        //  MODAL - SELECT OPTION
+        //  ENABLE / DISABLE SOAL INTERACTION
+        // ============================================================
+        function enableSoalInteraction() {
+            const btns = modalOptions.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = false);
+            modalCekBtn.disabled = true;
+        }
+
+        function disableSoalInteraction() {
+            const btns = modalOptions.querySelectorAll('.option-btn');
+            btns.forEach(b => {
+                b.disabled = true;
+                b.classList.remove('selected', 'correct-opt', 'wrong-opt');
+            });
+            modalCekBtn.disabled = true;
+        }
+
+        // ============================================================
+        //  SELECT OPTION
         // ============================================================
         function selectOptionModal(button, value) {
-            if (isAnswered) return;
+            if (isAnswered || !isLoggedIn) return;
 
             const allBtns = modalOptions.querySelectorAll('.option-btn');
             allBtns.forEach(b => b.classList.remove('selected'));
@@ -1259,16 +1159,14 @@
         }
 
         // ============================================================
-        //  MODAL - CEK JAWABAN
+        //  CEK JAWABAN
         // ============================================================
-        function cekJawabanModal() {
-            if (!selectedOption || isAnswered) return;
+        async function cekJawabanModal() {
+            if (!selectedOption || isAnswered || !isLoggedIn || !siswaAktif) return;
 
-            const index = currentBoxIndex;
-            const box = activeBoxes[index];
-            if (!box || !box.soal) return;
+            const q = currentQuestionData;
+            if (!q) return;
 
-            const q = box.soal;
             const correct = q.Jawaban?.trim().toUpperCase() || 'A';
             const isCorrect = selectedOption === correct;
 
@@ -1286,94 +1184,130 @@
             modalCekBtn.disabled = true;
 
             if (isCorrect) {
-                score++;
-                completed++;
-                box.status = 'correct';
-
-                // Tambah bintang
+                // ===== JAWABAN BENAR =====
+                // 1. Tambah bintang
                 const bintangSoal = parseInt(q['Bintang']) || 0;
-                updateBintangKeSheet(bintangSoal);
+                await updateBintang(siswaAktif.nisn, bintangSoal);
 
+                // 2. Hapus soal dari aktifQuestions (soal hilang)
+                const idx = activeQuestions.findIndex(q2 => (q2.id || q2.No) === (q.id || q.No));
+                if (idx !== -1) {
+                    activeQuestions.splice(idx, 1);
+                }
+
+                // 3. Hapus dari Google Sheets
+                await hapusSoal(q.id || q.No);
+
+                // 4. Tampilkan feedback
                 modalFeedback.textContent = `✅ Benar! +${bintangSoal} ⭐ Bintang! 🎉`;
                 modalFeedback.className = 'feedback benar';
 
-                modalCekBtn.style.display = 'none';
-                modalNextBtn.style.display = 'inline-block';
-                modalNextBtn.textContent = '➡️ Soal Berikutnya';
-                modalNextBtn.onclick = () => {
+                // 5. Tutup modal setelah delay dan render ulang
+                setTimeout(() => {
                     closeModal();
-                    replaceQuestion(index);
-                    if (queueQuestions.length === 0 && !activeBoxes.some(b => b.status === 'pending' || b.status ===
-                            'wrong')) {
-                        setTimeout(() => {
-                            alert('🎉 Semua soal selesai! Skor: ' + score + '/' + allQuestions.length);
-                        }, 300);
-                    } else {
-                        const nextIndex = findNextPending(index);
-                        if (nextIndex !== -1) {
-                            setTimeout(() => openModal(nextIndex), 400);
-                        }
-                    }
                     renderGrid();
-                };
+                    // Cek jika semua soal selesai
+                    if (activeQuestions.length === 0) {
+                        setTimeout(() => {
+                            alert('🎉 Semua soal telah selesai! Total bintang: ' + siswaAktif?.bintang || 0);
+                        }, 300);
+                    }
+                }, 1500);
 
             } else {
-                box.status = 'wrong';
-                modalFeedback.textContent = `❌ Salah! Jawaban yang benar: ${correct}`;
+                // ===== JAWABAN SALAH =====
+                // Jangan tampilkan jawaban benar, hanya info salah
+                modalFeedback.textContent = '❌ Jawaban salah. Silakan ganti siswa untuk mencoba lagi.';
                 modalFeedback.className = 'feedback salah';
 
-                modalCekBtn.textContent = '🔄 Coba Lagi';
-                modalCekBtn.disabled = false;
-                modalCekBtn.onclick = () => {
-                    closeModal();
-                    renderGrid();
-                    setTimeout(() => openModal(index), 300);
-                };
+                // Nonaktifkan tombol cek dan opsi
+                modalCekBtn.disabled = true;
+
+                // Tampilkan tombol ganti siswa otomatis
+                setTimeout(() => {
+                    // Reset state dan tampilkan login lagi
+                    gantiSiswa();
+                    // Tandai kotak jadi merah (wrong)
+                    const idx = activeQuestions.findIndex(q2 => (q2.id || q2.No) === (q.id || q.No));
+                    if (idx !== -1) {
+                        const boxes = gridContainer.querySelectorAll('.soal-box');
+                        if (boxes[idx]) {
+                            boxes[idx].className = 'soal-box wrong';
+                        }
+                    }
+                }, 1500);
             }
 
             isAnswered = true;
             updateStats();
-            renderGrid();
         }
 
         // ============================================================
-        //  FIND NEXT PENDING
+        //  UPDATE BINTANG KE SHEET
         // ============================================================
-        function findNextPending(fromIndex) {
-            for (let i = fromIndex + 1; i < activeBoxes.length; i++) {
-                if (activeBoxes[i].status === 'pending' || activeBoxes[i].status === 'wrong') {
-                    return i;
+        async function updateBintang(nisn, bintang) {
+            try {
+                const params = new URLSearchParams({
+                    action: 'updateBintang',
+                    nisn: nisn,
+                    bintang: bintang
+                });
+                const response = await fetch(SCRIPT_URL + '?' + params.toString());
+                const result = await response.json();
+                if (result.success && siswaAktif) {
+                    siswaAktif.bintang = result.bintangTotal;
+                    aktifBintang.textContent = result.bintangTotal;
                 }
+                return result;
+            } catch (error) {
+                console.error('Error update bintang:', error);
             }
-            for (let i = 0; i < fromIndex; i++) {
-                if (activeBoxes[i].status === 'pending' || activeBoxes[i].status === 'wrong') {
-                    return i;
-                }
-            }
-            return -1;
         }
 
         // ============================================================
-        //  UPDATE STATS
+        //  HAPUS SOAL DARI SHEET
         // ============================================================
-        function updateStats() {
-            const total = allQuestions.length || 0;
-            totalSoalEl.textContent = total;
-            selesaiEl.textContent = completed;
-            scoreEl.textContent = score;
+        async function hapusSoal(id) {
+            try {
+                const params = new URLSearchParams({
+                    action: 'removeSoal',
+                    id: id
+                });
+                const response = await fetch(SCRIPT_URL + '?' + params.toString());
+                return await response.json();
+            } catch (error) {
+                console.error('Error hapus soal:', error);
+            }
+        }
 
-            const remaining = queueQuestions.length +
-                activeBoxes.filter(b => b.status === 'pending' || b.status === 'wrong').length;
-            tersisaEl.textContent = remaining;
+        // ============================================================
+        //  RESET ALL
+        // ============================================================
+        function resetAll() {
+            if (confirm('Yakin ingin mereset semua soal? Soal akan dimuat ulang dari server.')) {
+                closeModal();
+                loadData();
+            }
+        }
+
+        // ============================================================
+        //  CLOSE MODAL
+        // ============================================================
+        function closeModal() {
+            modalOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+            isModalOpen = false;
+            isLoggedIn = false;
+            isAnswered = false;
+            selectedOption = null;
+            siswaAktif = null;
+            currentQuestionData = null;
+            currentQuestionId = null;
         }
 
         // ============================================================
         //  EVENT LISTENERS
         // ============================================================
-        nisnInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') login();
-        });
-
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) closeModal();
         });
@@ -1382,15 +1316,22 @@
             if (e.key === 'Escape' && isModalOpen) closeModal();
         });
 
+        // Enter pada select untuk login
+        siswaSelect.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loginSiswa();
+        });
+
         // ============================================================
         //  EXPOSE
         // ============================================================
         window.loadData = loadData;
-        window.login = login;
-        window.logout = logout;
-        window.resetQuiz = resetQuiz;
+        window.resetAll = resetAll;
         window.closeModal = closeModal;
         window.openModal = openModal;
+        window.loginSiswa = loginSiswa;
+        window.gantiSiswa = gantiSiswa;
+        window.selectOptionModal = selectOptionModal;
+        window.cekJawabanModal = cekJawabanModal;
 
         // ============================================================
         //  START
