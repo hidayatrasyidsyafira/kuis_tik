@@ -613,7 +613,7 @@
         }
 
         /* ========================================
-           MODAL LOGIN (popup untuk ganti siswa)
+           MODAL LOGIN (popup untuk ganti siswa saat salah)
            ======================================== */
         .modal-login {
             max-width: 420px;
@@ -1374,7 +1374,6 @@
             document.body.style.overflow = '';
             isModalOpen = false;
             if (!isWrongTriggered) {
-                // Jika tidak triggered karena salah, reset index
                 currentBoxIndex = -1;
             }
         }
@@ -1424,16 +1423,20 @@
             const correct = q.Jawaban?.trim().toUpperCase() || 'A';
             const isCorrect = selectedOption === correct;
 
+            // Disable semua tombol option
             const allBtns = modalOptions.querySelectorAll('.option-btn');
             allBtns.forEach(b => {
                 b.disabled = true;
-                if (b.dataset.value === correct) {
-                    b.classList.add('correct-opt');
-                }
-                if (b.dataset.value === selectedOption && !isCorrect) {
-                    b.classList.add('wrong-opt');
-                }
             });
+
+            // Hanya jika jawaban BENAR, tampilkan highlight hijau
+            if (isCorrect) {
+                allBtns.forEach(b => {
+                    if (b.dataset.value === correct) {
+                        b.classList.add('correct-opt');
+                    }
+                });
+            }
 
             modalCekBtn.disabled = true;
 
@@ -1474,7 +1477,7 @@
                 box.status = 'wrong';
                 isWrongTriggered = true;
 
-                // Jangan tampilkan feedback jawaban benar
+                // Feedback tanpa menyebutkan jawaban benar
                 modalFeedback.textContent = '❌ Jawaban salah! Silakan login dengan siswa lain.';
                 modalFeedback.className = 'feedback salah';
 
@@ -1485,13 +1488,11 @@
                 // Tutup modal soal setelah 1 detik, lalu buka modal login
                 setTimeout(() => {
                     closeModal();
-                    // Buka modal login setelah modal soal tertutup
                     setTimeout(() => {
                         openModalLogin();
                     }, 300);
                 }, 1200);
 
-                // Update tampilan
                 isAnswered = true;
                 updateStats();
                 renderGrid();
