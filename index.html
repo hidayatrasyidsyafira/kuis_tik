@@ -1104,6 +1104,7 @@
         let logoutTimer = null;
         let salahTimer = null;
         let answeredQuestions = new Set(); // Untuk menyimpan indeks soal yang sudah dijawab
+        let originalQuestions = []; // Untuk menyimpan soal asli sebelum diacak
 
         // ============================================================
         //  DOM
@@ -1158,6 +1159,18 @@
         const salahCountdownNumber = document.getElementById('salahCountdownNumber');
 
         // ============================================================
+        //  FUNGSI SHUFFLE (Fisher-Yates)
+        // ============================================================
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // ============================================================
         //  LOAD DATA
         // ============================================================
         async function loadData() {
@@ -1176,8 +1189,8 @@
                     throw new Error(result?.error || 'Data kosong');
                 }
 
-                allQuestions = result.data;
-                console.log(`✅ ${allQuestions.length} soal dimuat`);
+                originalQuestions = result.data; // Simpan soal asli
+                console.log(`✅ ${originalQuestions.length} soal dimuat`);
 
                 loading.classList.remove('show');
                 loginSection.classList.remove('hidden');
@@ -1239,7 +1252,7 @@
                 siswaBintang.textContent = siswaData.bintang;
 
                 const tingkatSiswa = siswaData.tingkat.trim();
-                const filtered = allQuestions.filter(q => {
+                const filtered = originalQuestions.filter(q => {
                     const qTingkat = q['Tingkat'] ? q['Tingkat'].toString().trim() : '';
                     return qTingkat === tingkatSiswa;
                 });
@@ -1270,8 +1283,10 @@
                     return;
                 }
 
-                allQuestions = filtered;
-                console.log(`✅ ${allQuestions.length} soal untuk tingkat ${tingkatSiswa}`);
+                // ========== ACK SOAL SETELAH LOGIN ==========
+                // Acak soal sebelum ditampilkan
+                allQuestions = shuffleArray(filtered);
+                console.log(`✅ ${allQuestions.length} soal untuk tingkat ${tingkatSiswa} (diacak)`);
 
                 loginSection.classList.add('hidden');
                 quizContent.classList.remove('hidden');
@@ -1307,6 +1322,7 @@
             closeAllModals();
             siswaData = null;
             answeredQuestions = new Set();
+            allQuestions = []; // Kosongkan soal
             loginSection.classList.remove('hidden');
             quizContent.classList.add('hidden');
             nisnInput.value = '';
@@ -1319,13 +1335,13 @@
         //  RESET QUIZ
         // ============================================================
         function resetQuiz() {
-            // Tampilkan SEMUA soal (tidak di-shuffle)
+            // Reset state
             activeBoxes = [];
             score = 0;
             completed = 0;
             answeredQuestions = new Set();
 
-            // Tampilkan semua soal dalam urutan asli
+            // Tampilkan semua soal dalam urutan yang sudah diacak
             allQuestions.forEach((soal, index) => {
                 activeBoxes.push({
                     soal: soal,
