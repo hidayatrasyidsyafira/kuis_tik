@@ -304,12 +304,6 @@
             margin-top: 5px;
         }
 
-        .soal-box .bintang-soal {
-            font-size: 12px;
-            color: #ffc107;
-            margin-top: 2px;
-        }
-
         .soal-box.pending {
             border-color: #e0e0e0;
             background: white;
@@ -350,6 +344,12 @@
 
         .soal-box.empty .nomor {
             color: #999;
+        }
+
+        /* Disable untuk soal yang sudah dijawab benar */
+        .soal-box.correct {
+            pointer-events: none;
+            cursor: not-allowed;
         }
 
         @keyframes shake {
@@ -1063,8 +1063,8 @@
         // ============================================================
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycHGGdzzfUoTFEKz7QdIsL24N_DU5ZJVcfLvGFKpL9Z8fG8YBE074AxoUeVxLNAFmI/exec';
 
-        const AUTO_LOGOUT_DELAY = 5; // detik untuk jawaban benar
-        const SALAH_DELAY = 3; // detik untuk jawaban salah
+        const AUTO_LOGOUT_DELAY = 5;
+        const SALAH_DELAY = 3;
 
         // ============================================================
         //  STATE
@@ -1294,27 +1294,36 @@
         }
 
         // ============================================================
-        //  RESET QUIZ - TAMPILKAN SEMUA SOAL
+        //  RESET QUIZ
         // ============================================================
         function resetQuiz() {
-            // Acak semua soal
             const shuffled = [...allQuestions];
             for (let i = shuffled.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
             }
 
-            // Tampilkan SEMUA soal di grid
             activeBoxes = [];
             score = 0;
             completed = 0;
 
             shuffled.forEach((soal, index) => {
-                activeBoxes.push({
-                    soal: soal,
-                    status: 'pending',
-                    nomorAsli: index + 1
-                });
+                // Cek status soal dari sheet
+                const statusSoal = soal['Status Soal'] || 'BELUM';
+                if (statusSoal === 'SUDAH') {
+                    activeBoxes.push({
+                        soal: soal,
+                        status: 'correct',
+                        nomorAsli: index + 1
+                    });
+                    completed++;
+                } else {
+                    activeBoxes.push({
+                        soal: soal,
+                        status: 'pending',
+                        nomorAsli: index + 1
+                    });
+                }
             });
 
             closeAllModals();
@@ -1324,7 +1333,7 @@
         }
 
         // ============================================================
-        //  RENDER GRID - SEMUA SOAL
+        //  RENDER GRID
         // ============================================================
         function renderGrid() {
             gridContainer.innerHTML = '';
@@ -1334,27 +1343,21 @@
                 const status = box.status;
                 div.className = `soal-box ${status}`;
 
-                const bintangSoal = box.soal ? parseInt(box.soal['Bintang']) || 0 : 0;
-                const bintangStr = '⭐'.repeat(Math.min(bintangSoal, 5));
-
                 if (status === 'correct') {
                     div.innerHTML = `
                                 <span class="nomor" style="color:#28a745;">${box.nomorAsli}</span>
                                 <span class="status-icon">✅</span>
-                                <span class="bintang-soal">${bintangStr}</span>
                             `;
                 } else if (status === 'wrong') {
                     div.innerHTML = `
                                 <span class="nomor" style="color:#ff9800;">${box.nomorAsli}</span>
                                 <span class="status-icon">🔄</span>
-                                <span class="bintang-soal">${bintangStr}</span>
                             `;
                     div.onclick = () => openModal(index);
                 } else if (status === 'pending') {
                     div.innerHTML = `
                                 <span class="nomor">${box.nomorAsli}</span>
                                 <span class="status-icon">📦</span>
-                                <span class="bintang-soal">${bintangStr}</span>
                             `;
                     div.onclick = () => openModal(index);
                 }
@@ -1416,21 +1419,17 @@
             if (!siswaData) return false;
 
             const currentBintang = parseInt(siswaData.bintang) || 0;
-            
-            // Jika bintang hanya 1 atau 0, jangan dikurangi
+
             if (currentBintang <= 1) {
                 console.log('⚠️ Bintang hanya', currentBintang, ', tidak dikurangi');
                 return false;
             }
 
-            const bintangBaru = currentBintang - 1;
-
             try {
-                // Update bintang dengan nilai baru (kurangi 1)
                 const params = new URLSearchParams({
                     action: 'updateBintang',
                     nisn: siswaData.nisn,
-                    bintang: -1 // Kirim -1 untuk mengurangi
+                    bintang: -1
                 });
 
                 const response = await fetch(SCRIPT_URL + '?' + params.toString());
@@ -1452,6 +1451,33 @@
         }
 
         // ============================================================
+        //  UPDATE STATUS SOAL KE SHEET
+        // ============================================================
+        async function updateStatusSoal(soalData) {
+            try {
+                const params = new URLSearchParams({
+                    action: 'updateStatusSoal',
+                    no: soalData['No'] || '',
+                    status: 'SUDAH'
+                });
+
+                const response = await fetch(SCRIPT_URL + '?' + params.toString());
+                const result = await response.json();
+
+                if (result.success) {
+                    console.log('✅ Status soal diupdate:', result);
+                    return true;
+                } else {
+                    console.warn('⚠️ Gagal update status soal:', result.error);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error update status soal:', error);
+                return false;
+            }
+        }
+
+        // ============================================================
         //  MODAL SOAL
         // ============================================================
         function openModal(index) {
@@ -1459,7 +1485,6 @@
             if (!box || box.status === 'correct' || box.status === 'empty') return;
             if (isModalOpen) return;
 
-            // Hapus timer jika ada
             if (logoutTimer) {
                 clearTimeout(logoutTimer);
                 logoutTimer = null;
@@ -1542,7 +1567,7 @@
         }
 
         // ============================================================
-        //  MODAL SELAMAT (jawaban benar)
+        //  MODAL SELAMAT
         // ============================================================
         function openModalSelamat(bintangCount) {
             const bintangStr = '⭐'.repeat(Math.min(bintangCount, 5));
@@ -1580,7 +1605,7 @@
         }
 
         // ============================================================
-        //  MODAL SALAH (jawaban salah)
+        //  MODAL SALAH
         // ============================================================
         function openModalSalah() {
             modalSalahOverlay.classList.add('show');
@@ -1682,7 +1707,11 @@
                 completed++;
                 box.status = 'correct';
 
+                // Update bintang
                 updateBintangKeSheet(bintangSoal);
+
+                // Update status soal di sheet menjadi SUDAH
+                updateStatusSoal(q);
 
                 closeModal();
 
@@ -1700,15 +1729,11 @@
                 isWrongTriggered = true;
                 isAnswered = true;
 
-                // Kurangi bintang siswa (jika lebih dari 1)
                 const currentBintang = parseInt(siswaData.bintang) || 0;
-                let bintangDikurangi = false;
 
                 if (currentBintang > 1) {
-                    bintangDikurangi = true;
                     kurangiBintang().then(success => {
                         if (success) {
-                            // Update pesan di modal salah
                             salahSubMessage.textContent = '⭐ Bintang Anda dikurangi 1 (tersisa ' + siswaData.bintang + ' bintang)';
                         }
                     });
@@ -1716,14 +1741,11 @@
                     salahSubMessage.textContent = '⭐ Bintang Anda hanya ' + currentBintang + ', tidak dikurangi.';
                 }
 
-                // Sembunyikan tombol di modal soal
                 modalCekBtn.style.display = 'none';
                 modalNextBtn.style.display = 'none';
 
-                // Tutup modal soal
                 closeModal();
 
-                // Tampilkan modal salah setelah delay
                 setTimeout(() => {
                     openModalSalah();
                 }, 300);
@@ -1778,9 +1800,7 @@
         });
 
         modalSalahOverlay.addEventListener('click', (e) => {
-            if (e.target === modalSalahOverlay) {
-                // Jangan izinkan close manual
-            }
+            if (e.target === modalSalahOverlay) {}
         });
 
         document.addEventListener('keydown', (e) => {
