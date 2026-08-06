@@ -29,7 +29,7 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 30px;
-            max-width: 900px;
+            max-width: 1200px;
             width: 100%;
             animation: slideIn 0.5s ease;
         }
@@ -162,6 +162,17 @@
             box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
         }
 
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.3);
+        }
+
         #loginError {
             color: #dc3545;
             font-size: 14px;
@@ -286,7 +297,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
-        .soal-box:hover:not(.disabled):not(.correct) {
+        .soal-box:hover:not(.disabled):not(.correct):not(.sudah) {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.25);
             border-color: #667eea;
@@ -317,11 +328,22 @@
             border-color: #28a745;
             background: #d4edda;
             cursor: default;
-            opacity: 0.6;
+            opacity: 0.8;
         }
 
         .soal-box.correct .nomor {
             color: #28a745;
+        }
+
+        .soal-box.sudah {
+            border-color: #17a2b8;
+            background: #d1ecf1;
+            cursor: default;
+            opacity: 0.8;
+        }
+
+        .soal-box.sudah .nomor {
+            color: #17a2b8;
         }
 
         .soal-box.wrong {
@@ -344,6 +366,11 @@
 
         .soal-box.empty .nomor {
             color: #999;
+        }
+
+        .soal-box.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
         }
 
         @keyframes shake {
@@ -1057,7 +1084,6 @@
         // ============================================================
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycHGGdzzfUoTFEKz7QdIsL24N_DU5ZJVcfLvGFKpL9Z8fG8YBE074AxoUeVxLNAFmI/exec';
 
-        const BOX_COUNT = 10;
         const AUTO_LOGOUT_DELAY = 5; // detik untuk jawaban benar
         const SALAH_DELAY = 3; // detik untuk jawaban salah
 
@@ -1065,7 +1091,6 @@
         //  STATE
         // ============================================================
         let allQuestions = [];
-        let queueQuestions = [];
         let activeBoxes = [];
         let score = 0;
         let completed = 0;
@@ -1078,6 +1103,7 @@
         let isWrongTriggered = false;
         let logoutTimer = null;
         let salahTimer = null;
+        let answeredQuestions = new Set(); // Untuk menyimpan indeks soal yang sudah dijawab
 
         // ============================================================
         //  DOM
@@ -1280,6 +1306,7 @@
             }
             closeAllModals();
             siswaData = null;
+            answeredQuestions = new Set();
             loginSection.classList.remove('hidden');
             quizContent.classList.add('hidden');
             nisnInput.value = '';
@@ -1292,33 +1319,21 @@
         //  RESET QUIZ
         // ============================================================
         function resetQuiz() {
-            const shuffled = [...allQuestions];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-
-            queueQuestions = shuffled;
+            // Tampilkan SEMUA soal (tidak di-shuffle)
             activeBoxes = [];
             score = 0;
             completed = 0;
+            answeredQuestions = new Set();
 
-            for (let i = 0; i < BOX_COUNT; i++) {
-                if (queueQuestions.length > 0) {
-                    const soal = queueQuestions.shift();
-                    activeBoxes.push({
-                        soal: soal,
-                        status: 'pending',
-                        nomorAsli: i + 1
-                    });
-                } else {
-                    activeBoxes.push({
-                        soal: null,
-                        status: 'empty',
-                        nomorAsli: i + 1
-                    });
-                }
-            }
+            // Tampilkan semua soal dalam urutan asli
+            allQuestions.forEach((soal, index) => {
+                activeBoxes.push({
+                    soal: soal,
+                    status: 'pending',
+                    nomorAsli: index + 1,
+                    soalIndex: index
+                });
+            });
 
             closeAllModals();
             isWrongTriggered = false;
@@ -1342,6 +1357,13 @@
                                 <span class="nomor" style="color:#28a745;">${box.nomorAsli}</span>
                                 <span class="status-icon">✅</span>
                             `;
+                    div.onclick = null;
+                } else if (status === 'sudah') {
+                    div.innerHTML = `
+                                <span class="nomor" style="color:#17a2b8;">${box.nomorAsli}</span>
+                                <span class="status-icon">✔️</span>
+                            `;
+                    div.onclick = null;
                 } else if (status === 'wrong') {
                     div.innerHTML = `
                                 <span class="nomor" style="color:#ff9800;">${box.nomorAsli}</span>
@@ -1353,6 +1375,7 @@
                                 <span class="nomor" style="color:#999;">✕</span>
                                 <span class="status-icon">📭</span>
                             `;
+                    div.onclick = null;
                 } else if (status === 'pending') {
                     div.innerHTML = `
                                 <span class="nomor">${box.nomorAsli}</span>
@@ -1365,31 +1388,6 @@
             });
 
             updateStats();
-        }
-
-        // ============================================================
-        //  GET NEW QUESTION
-        // ============================================================
-        function getNewQuestion() {
-            if (queueQuestions.length > 0) {
-                return queueQuestions.shift();
-            }
-            return null;
-        }
-
-        // ============================================================
-        //  REPLACE QUESTION
-        // ============================================================
-        function replaceQuestion(index) {
-            const newSoal = getNewQuestion();
-            if (newSoal) {
-                activeBoxes[index].soal = newSoal;
-                activeBoxes[index].status = 'pending';
-            } else {
-                activeBoxes[index].soal = null;
-                activeBoxes[index].status = 'empty';
-            }
-            renderGrid();
         }
 
         // ============================================================
@@ -1437,11 +1435,41 @@
         }
 
         // ============================================================
+        //  UPDATE STATUS SOAL KE SHEET
+        // ============================================================
+        async function updateStatusSoalKeSheet(soalIndex, status) {
+            if (!siswaData) return;
+
+            try {
+                const params = new URLSearchParams({
+                    action: 'updateStatusSoal',
+                    nisn: siswaData.nisn,
+                    soalIndex: soalIndex,
+                    status: status
+                });
+
+                const response = await fetch(SCRIPT_URL + '?' + params.toString());
+                const result = await response.json();
+
+                if (result.success) {
+                    console.log('✅ Status soal diupdate:', result);
+                    return true;
+                } else {
+                    console.warn('⚠️ Gagal update status soal:', result.error);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error update status soal:', error);
+                return false;
+            }
+        }
+
+        // ============================================================
         //  MODAL SOAL
         // ============================================================
         function openModal(index) {
             const box = activeBoxes[index];
-            if (!box || box.status === 'correct' || box.status === 'empty') return;
+            if (!box || box.status === 'correct' || box.status === 'sudah' || box.status === 'empty') return;
             if (isModalOpen) return;
 
             // Hapus timer jika ada
@@ -1664,9 +1692,14 @@
             modalCekBtn.disabled = true;
 
             if (isCorrect) {
+                // ========== JAWABAN BENAR ==========
                 score++;
                 completed++;
                 box.status = 'correct';
+                answeredQuestions.add(index);
+
+                // Update status ke sheet
+                updateStatusSoalKeSheet(index, 'correct');
 
                 updateBintangKeSheet(bintangSoal);
 
@@ -1676,8 +1709,8 @@
                     openModalSelamat(bintangSoal);
                 }, 300);
 
+                // Render ulang setelah delay
                 setTimeout(() => {
-                    replaceQuestion(index);
                     renderGrid();
                 }, 500);
 
@@ -1686,6 +1719,9 @@
                 box.status = 'wrong';
                 isWrongTriggered = true;
                 isAnswered = true;
+
+                // Update status ke sheet
+                updateStatusSoalKeSheet(index, 'wrong');
 
                 // Sembunyikan tombol di modal soal
                 modalCekBtn.style.display = 'none';
@@ -1710,23 +1746,6 @@
         }
 
         // ============================================================
-        //  FIND NEXT PENDING
-        // ============================================================
-        function findNextPending(fromIndex) {
-            for (let i = fromIndex + 1; i < activeBoxes.length; i++) {
-                if (activeBoxes[i].status === 'pending' || activeBoxes[i].status === 'wrong') {
-                    return i;
-                }
-            }
-            for (let i = 0; i < fromIndex; i++) {
-                if (activeBoxes[i].status === 'pending' || activeBoxes[i].status === 'wrong') {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        // ============================================================
         //  UPDATE STATS
         // ============================================================
         function updateStats() {
@@ -1735,8 +1754,7 @@
             selesaiEl.textContent = completed;
             scoreEl.textContent = score;
 
-            const remaining = queueQuestions.length +
-                activeBoxes.filter(b => b.status === 'pending' || b.status === 'wrong').length;
+            const remaining = activeBoxes.filter(b => b.status === 'pending' || b.status === 'wrong').length;
             tersisaEl.textContent = remaining;
         }
 
