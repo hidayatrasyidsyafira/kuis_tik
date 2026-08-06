@@ -29,7 +29,7 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 30px;
-            max-width: 1100px;
+            max-width: 900px;
             width: 100%;
             animation: slideIn 0.5s ease;
         }
@@ -260,7 +260,7 @@
         }
 
         /* ========================================
-           GRID KOTAK SOAL - SEMUA SOAL
+           GRID KOTAK SOAL
            ======================================== */
         .grid-container {
             display: grid;
@@ -344,12 +344,6 @@
 
         .soal-box.empty .nomor {
             color: #999;
-        }
-
-        /* Disable untuk soal yang sudah dijawab benar */
-        .soal-box.correct {
-            pointer-events: none;
-            cursor: not-allowed;
         }
 
         @keyframes shake {
@@ -964,7 +958,7 @@
                 </div>
             </div>
 
-            <!-- GRID SEMUA SOAL -->
+            <!-- GRID -->
             <div class="grid-container" id="gridContainer"></div>
 
             <!-- TOMBOL -->
@@ -1052,7 +1046,7 @@
             <div class="salah-icon">❌</div>
             <div class="salah-title">Jawaban Salah!</div>
             <div class="salah-message">Maaf, jawaban Anda kurang tepat.</div>
-            <div class="salah-sub" id="salahSubMessage">Bintang Anda akan dikurangi 1 (jika tersedia).</div>
+            <div class="salah-sub">Silakan login dengan siswa lain untuk mengerjakan ulang soal ini.</div>
             <div class="countdown" id="salahCountdown">Menutup dalam <span id="salahCountdownNumber">3</span> detik...</div>
         </div>
     </div>
@@ -1063,13 +1057,15 @@
         // ============================================================
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycHGGdzzfUoTFEKz7QdIsL24N_DU5ZJVcfLvGFKpL9Z8fG8YBE074AxoUeVxLNAFmI/exec';
 
-        const AUTO_LOGOUT_DELAY = 5;
-        const SALAH_DELAY = 3;
+        const BOX_COUNT = 10;
+        const AUTO_LOGOUT_DELAY = 5; // detik untuk jawaban benar
+        const SALAH_DELAY = 3; // detik untuk jawaban salah
 
         // ============================================================
         //  STATE
         // ============================================================
         let allQuestions = [];
+        let queueQuestions = [];
         let activeBoxes = [];
         let score = 0;
         let completed = 0;
@@ -1134,7 +1130,6 @@
         // Modal Salah
         const modalSalahOverlay = document.getElementById('modalSalahOverlay');
         const salahCountdownNumber = document.getElementById('salahCountdownNumber');
-        const salahSubMessage = document.getElementById('salahSubMessage');
 
         // ============================================================
         //  LOAD DATA
@@ -1303,28 +1298,27 @@
                 [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
             }
 
+            queueQuestions = shuffled;
             activeBoxes = [];
             score = 0;
             completed = 0;
 
-            shuffled.forEach((soal, index) => {
-                // Cek status soal dari sheet
-                const statusSoal = soal['Status Soal'] || 'BELUM';
-                if (statusSoal === 'SUDAH') {
-                    activeBoxes.push({
-                        soal: soal,
-                        status: 'correct',
-                        nomorAsli: index + 1
-                    });
-                    completed++;
-                } else {
+            for (let i = 0; i < BOX_COUNT; i++) {
+                if (queueQuestions.length > 0) {
+                    const soal = queueQuestions.shift();
                     activeBoxes.push({
                         soal: soal,
                         status: 'pending',
-                        nomorAsli: index + 1
+                        nomorAsli: i + 1
+                    });
+                } else {
+                    activeBoxes.push({
+                        soal: null,
+                        status: 'empty',
+                        nomorAsli: i + 1
                     });
                 }
-            });
+            }
 
             closeAllModals();
             isWrongTriggered = false;
@@ -1354,6 +1348,11 @@
                                 <span class="status-icon">🔄</span>
                             `;
                     div.onclick = () => openModal(index);
+                } else if (status === 'empty') {
+                    div.innerHTML = `
+                                <span class="nomor" style="color:#999;">✕</span>
+                                <span class="status-icon">📭</span>
+                            `;
                 } else if (status === 'pending') {
                     div.innerHTML = `
                                 <span class="nomor">${box.nomorAsli}</span>
@@ -1366,6 +1365,31 @@
             });
 
             updateStats();
+        }
+
+        // ============================================================
+        //  GET NEW QUESTION
+        // ============================================================
+        function getNewQuestion() {
+            if (queueQuestions.length > 0) {
+                return queueQuestions.shift();
+            }
+            return null;
+        }
+
+        // ============================================================
+        //  REPLACE QUESTION
+        // ============================================================
+        function replaceQuestion(index) {
+            const newSoal = getNewQuestion();
+            if (newSoal) {
+                activeBoxes[index].soal = newSoal;
+                activeBoxes[index].status = 'pending';
+            } else {
+                activeBoxes[index].soal = null;
+                activeBoxes[index].status = 'empty';
+            }
+            renderGrid();
         }
 
         // ============================================================
@@ -1382,7 +1406,7 @@
         }
 
         // ============================================================
-        //  UPDATE BINTANG KE SHEET - TAMBAH
+        //  UPDATE BINTANG KE SHEET
         // ============================================================
         async function updateBintangKeSheet(bintangDitambah) {
             if (!siswaData) return;
@@ -1413,71 +1437,6 @@
         }
 
         // ============================================================
-        //  KURANGI BINTANG - JIKA SALAH
-        // ============================================================
-        async function kurangiBintang() {
-            if (!siswaData) return false;
-
-            const currentBintang = parseInt(siswaData.bintang) || 0;
-
-            if (currentBintang <= 1) {
-                console.log('⚠️ Bintang hanya', currentBintang, ', tidak dikurangi');
-                return false;
-            }
-
-            try {
-                const params = new URLSearchParams({
-                    action: 'updateBintang',
-                    nisn: siswaData.nisn,
-                    bintang: -1
-                });
-
-                const response = await fetch(SCRIPT_URL + '?' + params.toString());
-                const result = await response.json();
-
-                if (result.success) {
-                    siswaBintang.textContent = result.bintangTotal;
-                    siswaData.bintang = result.bintangTotal;
-                    console.log('✅ Bintang dikurangi 1, sekarang:', result.bintangTotal);
-                    return true;
-                } else {
-                    console.warn('⚠️ Gagal kurangi bintang:', result.error);
-                    return false;
-                }
-            } catch (error) {
-                console.error('Error kurangi bintang:', error);
-                return false;
-            }
-        }
-
-        // ============================================================
-        //  UPDATE STATUS SOAL KE SHEET
-        // ============================================================
-        async function updateStatusSoal(soalData) {
-            try {
-                const params = new URLSearchParams({
-                    action: 'updateStatusSoal',
-                    no: soalData['No'] || '',
-                    status: 'SUDAH'
-                });
-
-                const response = await fetch(SCRIPT_URL + '?' + params.toString());
-                const result = await response.json();
-
-                if (result.success) {
-                    console.log('✅ Status soal diupdate:', result);
-                    return true;
-                } else {
-                    console.warn('⚠️ Gagal update status soal:', result.error);
-                    return false;
-                }
-            } catch (error) {
-                console.error('Error update status soal:', error);
-                return false;
-            }
-        }
-
-        // ============================================================
         //  MODAL SOAL
         // ============================================================
         function openModal(index) {
@@ -1485,6 +1444,7 @@
             if (!box || box.status === 'correct' || box.status === 'empty') return;
             if (isModalOpen) return;
 
+            // Hapus timer jika ada
             if (logoutTimer) {
                 clearTimeout(logoutTimer);
                 logoutTimer = null;
@@ -1567,7 +1527,7 @@
         }
 
         // ============================================================
-        //  MODAL SELAMAT
+        //  MODAL SELAMAT (jawaban benar)
         // ============================================================
         function openModalSelamat(bintangCount) {
             const bintangStr = '⭐'.repeat(Math.min(bintangCount, 5));
@@ -1605,7 +1565,7 @@
         }
 
         // ============================================================
-        //  MODAL SALAH
+        //  MODAL SALAH (jawaban salah)
         // ============================================================
         function openModalSalah() {
             modalSalahOverlay.classList.add('show');
@@ -1625,6 +1585,7 @@
                     clearInterval(salahTimer);
                     salahTimer = null;
                     closeModalSalah();
+                    // Buka modal login setelah modal salah tertutup
                     setTimeout(() => {
                         openModalLogin();
                     }, 300);
@@ -1707,11 +1668,7 @@
                 completed++;
                 box.status = 'correct';
 
-                // Update bintang
                 updateBintangKeSheet(bintangSoal);
-
-                // Update status soal di sheet menjadi SUDAH
-                updateStatusSoal(q);
 
                 closeModal();
 
@@ -1720,6 +1677,7 @@
                 }, 300);
 
                 setTimeout(() => {
+                    replaceQuestion(index);
                     renderGrid();
                 }, 500);
 
@@ -1729,23 +1687,14 @@
                 isWrongTriggered = true;
                 isAnswered = true;
 
-                const currentBintang = parseInt(siswaData.bintang) || 0;
-
-                if (currentBintang > 1) {
-                    kurangiBintang().then(success => {
-                        if (success) {
-                            salahSubMessage.textContent = '⭐ Bintang Anda dikurangi 1 (tersisa ' + siswaData.bintang + ' bintang)';
-                        }
-                    });
-                } else {
-                    salahSubMessage.textContent = '⭐ Bintang Anda hanya ' + currentBintang + ', tidak dikurangi.';
-                }
-
+                // Sembunyikan tombol di modal soal
                 modalCekBtn.style.display = 'none';
                 modalNextBtn.style.display = 'none';
 
+                // Tutup modal soal
                 closeModal();
 
+                // Tampilkan modal salah setelah delay
                 setTimeout(() => {
                     openModalSalah();
                 }, 300);
@@ -1761,6 +1710,23 @@
         }
 
         // ============================================================
+        //  FIND NEXT PENDING
+        // ============================================================
+        function findNextPending(fromIndex) {
+            for (let i = fromIndex + 1; i < activeBoxes.length; i++) {
+                if (activeBoxes[i].status === 'pending' || activeBoxes[i].status === 'wrong') {
+                    return i;
+                }
+            }
+            for (let i = 0; i < fromIndex; i++) {
+                if (activeBoxes[i].status === 'pending' || activeBoxes[i].status === 'wrong') {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        // ============================================================
         //  UPDATE STATS
         // ============================================================
         function updateStats() {
@@ -1769,7 +1735,8 @@
             selesaiEl.textContent = completed;
             scoreEl.textContent = score;
 
-            const remaining = activeBoxes.filter(b => b.status === 'pending' || b.status === 'wrong').length;
+            const remaining = queueQuestions.length +
+                activeBoxes.filter(b => b.status === 'pending' || b.status === 'wrong').length;
             tersisaEl.textContent = remaining;
         }
 
@@ -1800,7 +1767,9 @@
         });
 
         modalSalahOverlay.addEventListener('click', (e) => {
-            if (e.target === modalSalahOverlay) {}
+            if (e.target === modalSalahOverlay) {
+                // Jangan izinkan close manual
+            }
         });
 
         document.addEventListener('keydown', (e) => {
